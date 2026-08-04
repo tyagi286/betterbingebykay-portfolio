@@ -55,6 +55,12 @@ async function getThumbUrls(folderId) {
   }
 }
 
+function skeletonGridHtml(count) {
+  var items = [];
+  for (var i = 0; i < (count || 4); i++) items.push('<div class="skeleton-item"></div>');
+  return '<div class="grid">' + items.join('\n') + '</div>';
+}
+
 function photoGridHtml(urls, groupId, altLabel) {
   if (urls === null) {
     return '<p class="empty-msg section-error">⚠️ Could not load photos — check DRIVE_API_KEY in js/config.js and make sure the folder is shared as "Anyone with the link".</p>';
@@ -78,14 +84,16 @@ function photoGridHtml(urls, groupId, altLabel) {
 }
 
 // ── Render a priced brownie-box tier ─────────────────────────────────────
-async function renderTier(tier, tierIdx) {
+// Two-phase: the shell (header, price, skeleton grid) renders instantly;
+// fillTierPhotos() swaps the skeleton for real photos once Drive responds.
+function renderTierShell(tier, tierIdx) {
   const tierNum = String(tierIdx + 1).padStart(2, '0');
   const groupId = 'tier' + tierIdx;
-  const urls = await getThumbUrls(tier.folderId);
-  const photosHtml = photoGridHtml(urls, groupId, tier.label);
+  const ribbonHtml = tier.featured ? '<div class="ribbon">Most Loved</div>' : '';
 
   return `
-  <div class="tier-card" data-group-label="${groupId}" data-name="${escapeHtml(tier.label)}" data-price="${escapeHtml(tier.price)}">
+  <div class="tier-card reveal-target${tier.featured ? ' featured' : ''}" data-group-label="${groupId}" data-name="${escapeHtml(tier.label)}" data-price="${escapeHtml(tier.price)}">
+    ${ribbonHtml}
     <div class="tier-header">
       <span class="tier-num">${tierNum}</span>
       <div class="tier-title-block">
@@ -98,30 +106,45 @@ async function renderTier(tier, tierIdx) {
       </div>
       <div class="tier-price-badge">${escapeHtml(tier.price)}</div>
     </div>
-    <div class="photos-wrap">
-      ${photosHtml}
+    <div class="photos-wrap" id="photos-${groupId}">
+      ${skeletonGridHtml(4)}
     </div>
   </div>`;
 }
 
+async function fillTierPhotos(tier, tierIdx) {
+  const groupId = 'tier' + tierIdx;
+  const urls = await getThumbUrls(tier.folderId);
+  const el = document.getElementById('photos-' + groupId);
+  if (el) el.innerHTML = photoGridHtml(urls, groupId, tier.label);
+  wireUpNewPhotos(groupId);
+}
+
 // ── Render an un-priced-per-item gallery section (packaging / hampers) ──
-async function renderGallery(title, note, priceNote, folderId, groupId, testimonial) {
-  const urls = await getThumbUrls(folderId);
-  const photosHtml = photoGridHtml(urls, groupId, title);
+function renderGalleryShell(title, note, priceNote, groupId, testimonial) {
   const priceHtml = priceNote ? `<div class="gallery-note-row"><span class="gallery-price-badge">${escapeHtml(priceNote)}</span></div>` : '';
   const testimonialHtml = testimonial ? `<p class="testimonial">${escapeHtml(testimonial)}</p>` : '';
 
   return `
-  <div class="gallery-section section-block" data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
+  <div class="gallery-section section-block reveal-target" data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
     <div class="section-head">
       <h2>${escapeHtml(title)}</h2>
       <div class="section-divider"><span>✦</span></div>
       <p>${escapeHtml(note)}</p>
     </div>
     ${priceHtml}
-    ${photosHtml}
+    <div id="photos-${groupId}">
+      ${skeletonGridHtml(4)}
+    </div>
     ${testimonialHtml}
   </div>`;
+}
+
+async function fillGalleryPhotos(folderId, groupId, title) {
+  const urls = await getThumbUrls(folderId);
+  const el = document.getElementById('photos-' + groupId);
+  if (el) el.innerHTML = photoGridHtml(urls, groupId, title);
+  wireUpNewPhotos(groupId);
 }
 
 // ── Build the whole page ─────────────────────────────────────────────────
@@ -130,13 +153,16 @@ async function buildPage() {
 
   document.title = cfg.displayName;
 
-  // Logo — just an <img src>, no base64 embedding needed outside Apps Script
+  // Logo + handcrafted seal badge — just an <img src>, no base64 needed
+  // outside Apps Script
   const logoWrap = document.getElementById('logoWrap');
   if (cfg.logoFileId && cfg.logoFileId.trim() !== '') {
     logoWrap.innerHTML = '<div class="logo-ring"></div>' +
       '<img class="logo" src="https://lh3.googleusercontent.com/d/' + cfg.logoFileId.trim() + '=w300" ' +
       'alt="' + escapeHtml(cfg.displayName) + ' logo" ' +
-      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">';
+      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">'
+      // + '<div class="handcrafted-seal"><span>100%<br>Handcrafted</span></div>'
+      ;
   } else {
     logoWrap.style.display = 'none';
   }
@@ -151,20 +177,47 @@ async function buildPage() {
     handleBadge.style.display = 'none';
   }
 
+  const kayNoteEl = document.getElementById('kayNote');
+  if (cfg.kayNote) {
+    kayNoteEl.textContent = cfg.kayNote;
+  } else {
+    kayNoteEl.style.display = 'none';
+  }
+
   document.getElementById('footerBrand').textContent = cfg.displayName;
 
-  // Sections render in parallel, then get slotted in, in order
-  const [packagingHtml, tierHtmls, hamperHtml] = await Promise.all([
-    renderGallery(cfg.packaging.title, cfg.packaging.note, null, cfg.packaging.folderId, 'packaging', cfg.packaging.testimonial),
-    Promise.all(cfg.tiers.map(function (tier, i) { return renderTier(tier, i); })),
-    renderGallery(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, cfg.hamper.folderId, 'hamper', null)
-  ]);
+  // Floating CTA: WhatsApp if configured, otherwise fall back to Instagram
+  const cta = document.getElementById('floatingCta');
+  const ctaLabel = document.getElementById('floatingCtaLabel');
+  const wa = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
+  if (wa) {
+    cta.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(cfg.orderCta.orderMessage || '');
+    ctaLabel.textContent = 'Order on WhatsApp';
+  } else if (cfg.instagramHandle) {
+    cta.href = 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '');
+    ctaLabel.textContent = 'Order on Instagram';
+  } else {
+    cta.style.display = 'none';
+  }
 
-  document.getElementById('packagingSlot').innerHTML = packagingHtml;
-  document.getElementById('tierSlot').innerHTML = tierHtmls.join('\n');
-  document.getElementById('hamperSlot').innerHTML = hamperHtml;
+  // Section shells render instantly (with skeleton placeholders); each
+  // section's photos then swap in as soon as its own Drive request lands,
+  // instead of the whole page waiting on the slowest folder.
+  document.getElementById('packagingSlot').innerHTML =
+    renderGalleryShell(cfg.packaging.title, cfg.packaging.note, null, 'packaging', cfg.packaging.testimonial);
+
+  document.getElementById('tierSlot').innerHTML =
+    cfg.tiers.map(function (tier, i) { return renderTierShell(tier, i); }).join('\n');
+
+  document.getElementById('hamperSlot').innerHTML =
+    renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null);
 
   initPageBehaviors();
+
+  // Fire off each folder's fetch independently
+  fillGalleryPhotos(cfg.packaging.folderId, 'packaging', cfg.packaging.title);
+  cfg.tiers.forEach(function (tier, i) { fillTierPhotos(tier, i); });
+  fillGalleryPhotos(cfg.hamper.folderId, 'hamper', cfg.hamper.title);
 }
 
 // ── Lightbox state ────────────────────────────────────────────────────
@@ -284,7 +337,7 @@ function initPageBehaviors() {
   })();
 
   (function () {
-    var cards = document.querySelectorAll('.tier-card');
+    var cards = document.querySelectorAll('.reveal-target');
     if (!('IntersectionObserver' in window)) { cards.forEach(function (c) { c.classList.add('visible'); }); return; }
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
@@ -293,8 +346,12 @@ function initPageBehaviors() {
     }, { threshold: 0.10 });
     cards.forEach(function (c) { io.observe(c); });
   })();
+}
 
-  document.querySelectorAll('.photo-item img').forEach(function (img) {
+// Fades a group's <img> thumbnails in once each one finishes loading.
+// Called after a section's skeleton grid is swapped for real photos.
+function wireUpNewPhotos(groupId) {
+  document.querySelectorAll('.photo-item[data-group="' + groupId + '"] img').forEach(function (img) {
     img.classList.add('loading');
     if (img.complete) { img.classList.add('loaded'); return; }
     img.addEventListener('load', function () { img.classList.remove('loading'); img.classList.add('loaded'); });
