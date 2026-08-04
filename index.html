@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Better Binge by Kay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ░░ HERO ░░ -->
+  <div class="hero">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <span class="petal" style="left:10%;bottom:20%;animation-duration:11s;">🌸</span>
+    <span class="petal" style="left:30%;bottom:10%;animation-duration:14s;animation-delay:-4s;">🌷</span>
+    <span class="petal" style="left:60%;bottom:15%;animation-duration:9s;animation-delay:-7s;">🌸</span>
+    <span class="petal" style="left:80%;bottom:25%;animation-duration:13s;animation-delay:-2s;">✿</span>
+    <span class="petal" style="left:50%;bottom:5%;animation-duration:10s;animation-delay:-9s;">🌸</span>
+
+    <div class="hero-inner">
+      <div class="logo-wrap" id="logoWrap"></div>
+      <h1 id="heroTitle"></h1>
+      <div class="hero-divider"><span>✦</span></div>
+      <p class="tagline" id="tagline"></p>
+      <div class="handle-badge" id="handleBadge"></div>
+    </div>
+
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 56" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path d="M0,28 C360,56 1080,0 1440,28 L1440,56 L0,56 Z" fill="#fff8fa"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ░░ BRAND-LEVEL FACTS ░░ -->
+  <div class="product-info">
+    <div class="product-info-card">
+      <span class="pil"><span class="icon">🍫</span> Eggless Brownie Cakes</span>
+      <span class="pil"><span class="icon">🌾</span> No Maida</span>
+      <span class="pil"><span class="icon">✨</span> Made fresh to order</span>
+    </div>
+  </div>
+
+  <!-- ░░ SECTIONS (filled in by js/app.js) ░░ -->
+  <main class="content">
+    <div id="packagingSlot"></div>
+
+    <div class="section-block">
+      <div class="section-head">
+        <h2>Our Brownie Boxes</h2>
+        <div class="section-divider"><span>✦</span></div>
+        <p>Four sizes, same recipe — pick what fits the occasion.</p>
+      </div>
+      <div class="tier-list" id="tierSlot"></div>
+    </div>
+
+    <div id="hamperSlot"></div>
+  </main>
+
+  <!-- ░░ FOOTER WAVE ░░ -->
+  <div class="footer-wave">
+    <svg viewBox="0 0 1440 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0,20 C480,40 960,0 1440,20 L1440,40 L0,40 Z" fill="#ffe0eb"/>
+    </svg>
+  </div>
+  <footer>
+    <div>Made with <span class="heart">♥</span> just for you</div>
+    <div class="brand" id="footerBrand"></div>
+  </footer>
+
+  <!-- ░░ TAP TOAST ░░ -->
+  <div class="tap-toast" id="tapToast">
+    <span class="t-icon">👆</span> Tap any photo to view it full size
+  </div>
+
+  <!-- ░░ LIGHTBOX ░░ -->
+  <div class="lightbox" id="lb">
+    <div class="lb-topbar">
+      <div class="lb-category" id="lb-cat"></div>
+      <div class="lb-counter"  id="lb-cnt"></div>
+      <div class="lb-close-btn" id="lb-close">✕</div>
+    </div>
+    <div class="lb-row">
+      <div class="lb-arrow" id="lb-prev">&#8592;</div>
+      <div class="lb-img-wrap">
+        <div class="lb-loader" id="lb-loader"></div>
+        <img id="lb-img" src="" alt="">
+      </div>
+      <div class="lb-arrow" id="lb-next">&#8594;</div>
+    </div>
+    <div class="lb-dots" id="lb-dots"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+/**
+ * Better Binge by Kay — app.js
+ * Builds the whole page from SITE_CONFIG (js/config.js), fetching each
+ * Drive folder's photo list via the public Drive API v3 (client-side,
+ * since GitHub Pages has no server to run DriveApp on your behalf).
+ */
+
+// ── Utility ───────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+// ── Fetch a folder's image files from the Drive API ─────────────────────
+// Mirrors the old getThumbUrls(): builds the same 3-candidate hotlink
+// chain per image, just sourced from a fetch() call instead of DriveApp.
+async function getThumbUrls(folderId) {
+  if (!folderId || folderId.trim() === '' || folderId.indexOf('PASTE_') === 0) {
+    return [];
+  }
+  const key = SITE_CONFIG.driveApiKey;
+  if (!key || key.indexOf('PASTE_') === 0) {
+    return null; // signals a missing-API-key error to the caller
+  }
+
+  const q = encodeURIComponent(
+    `'${folderId.trim()}' in parents and trashed = false and ` +
+    `(mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/webp')`
+  );
+  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=200&key=${key}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null; // bad key, folder not public, quota, etc.
+    const data = await res.json();
+    const files = data.files || [];
+    return files.map(function (file) {
+      const id = file.id;
+      return {
+        id: id,
+        thumbA: 'https://lh3.googleusercontent.com/d/' + id + '=w500',
+        thumbB: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w500',
+        thumbC: 'https://drive.google.com/uc?export=view&id=' + id,
+        fullA: 'https://lh3.googleusercontent.com/d/' + id + '=w1600',
+        fullB: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1600',
+        viewUrl: 'https://drive.google.com/file/d/' + id + '/view'
+      };
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+function photoGridHtml(urls, groupId, altLabel) {
+  if (urls === null) {
+    return '<p class="empty-msg section-error">⚠️ Could not load photos — check DRIVE_API_KEY in js/config.js and make sure the folder is shared as "Anyone with the link".</p>';
+  }
+  if (urls.length === 0) {
+    return '<p class="empty-msg">Photos coming soon 🌸</p>';
+  }
+  const tags = urls.map(function (u, i) {
+    return '<div class="photo-item" data-group="' + groupId + '" onclick="openLb(\'' + groupId + '\',' + i + ')">' +
+             '<img src="' + u.thumbA + '" ' +
+                  'data-fallback-b="' + u.thumbB + '" ' +
+                  'data-fallback-c="' + u.thumbC + '" ' +
+                  'data-view-url="' + u.viewUrl + '" ' +
+                  'data-full="' + u.fullA + '" data-full-b="' + u.fullB + '" ' +
+                  'alt="' + escapeHtml(altLabel) + ' sample" loading="lazy" ' +
+                  'onerror="handleImgError(this)">' +
+             '<span class="tap-label">👆 Tap to view full size</span>' +
+           '</div>';
+  });
+  return '<div class="grid">' + tags.join('\n') + '</div>';
+}
+
+// ── Render a priced brownie-box tier ─────────────────────────────────────
+async function renderTier(tier, tierIdx) {
+  const tierNum = String(tierIdx + 1).padStart(2, '0');
+  const groupId = 'tier' + tierIdx;
+  const urls = await getThumbUrls(tier.folderId);
+  const photosHtml = photoGridHtml(urls, groupId, tier.label);
+
+  return `
+  <div class="tier-card" data-group-label="${groupId}" data-name="${escapeHtml(tier.label)}" data-price="${escapeHtml(tier.price)}">
+    <div class="tier-header">
+      <span class="tier-num">${tierNum}</span>
+      <div class="tier-title-block">
+        <div class="tier-name">${tier.emoji}&nbsp; ${escapeHtml(tier.label)}</div>
+        <div class="tier-note">${escapeHtml(tier.note)}</div>
+        <div class="tier-facts">
+          <span class="tier-fact">${escapeHtml(tier.pieces)}</span>
+          <span class="tier-fact">${escapeHtml(tier.weight)}</span>
+        </div>
+      </div>
+      <div class="tier-price-badge">${escapeHtml(tier.price)}</div>
+    </div>
+    <div class="photos-wrap">
+      ${photosHtml}
+    </div>
+  </div>`;
+}
+
+// ── Render an un-priced-per-item gallery section (packaging / hampers) ──
+async function renderGallery(title, note, priceNote, folderId, groupId, testimonial) {
+  const urls = await getThumbUrls(folderId);
+  const photosHtml = photoGridHtml(urls, groupId, title);
+  const priceHtml = priceNote ? `<div class="gallery-note-row"><span class="gallery-price-badge">${escapeHtml(priceNote)}</span></div>` : '';
+  const testimonialHtml = testimonial ? `<p class="testimonial">${escapeHtml(testimonial)}</p>` : '';
+
+  return `
+  <div class="gallery-section section-block" data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
+    <div class="section-head">
+      <h2>${escapeHtml(title)}</h2>
+      <div class="section-divider"><span>✦</span></div>
+      <p>${escapeHtml(note)}</p>
+    </div>
+    ${priceHtml}
+    ${photosHtml}
+    ${testimonialHtml}
+  </div>`;
+}
+
+// ── Build the whole page ─────────────────────────────────────────────────
+async function buildPage() {
+  const cfg = SITE_CONFIG;
+
+  document.title = cfg.displayName;
+
+  // Logo — just an <img src>, no base64 embedding needed outside Apps Script
+  const logoWrap = document.getElementById('logoWrap');
+  if (cfg.logoFileId && cfg.logoFileId.trim() !== '') {
+    logoWrap.innerHTML = '<div class="logo-ring"></div>' +
+      '<img class="logo" src="https://lh3.googleusercontent.com/d/' + cfg.logoFileId.trim() + '=w300" ' +
+      'alt="' + escapeHtml(cfg.displayName) + ' logo" ' +
+      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">';
+  } else {
+    logoWrap.style.display = 'none';
+  }
+
+  document.getElementById('heroTitle').innerHTML = escapeHtml(cfg.displayName).replace(/\bby\b/, '<em>by</em>');
+  document.getElementById('tagline').textContent = cfg.tagline;
+
+  const handleBadge = document.getElementById('handleBadge');
+  if (cfg.instagramHandle) {
+    handleBadge.textContent = cfg.instagramHandle;
+  } else {
+    handleBadge.style.display = 'none';
+  }
+
+  document.getElementById('footerBrand').textContent = cfg.displayName;
+
+  // Sections render in parallel, then get slotted in, in order
+  const [packagingHtml, tierHtmls, hamperHtml] = await Promise.all([
+    renderGallery(cfg.packaging.title, cfg.packaging.note, null, cfg.packaging.folderId, 'packaging', cfg.packaging.testimonial),
+    Promise.all(cfg.tiers.map(function (tier, i) { return renderTier(tier, i); })),
+    renderGallery(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, cfg.hamper.folderId, 'hamper', null)
+  ]);
+
+  document.getElementById('packagingSlot').innerHTML = packagingHtml;
+  document.getElementById('tierSlot').innerHTML = tierHtmls.join('\n');
+  document.getElementById('hamperSlot').innerHTML = hamperHtml;
+
+  initPageBehaviors();
+}
+
+// ── Lightbox state ────────────────────────────────────────────────────
+var lb = { groupId: '', photoIdx: 0, photos: [], name: '', price: '' };
+
+function openLb(groupId, photoIdx) {
+  var imgs = document.querySelectorAll('.photo-item[data-group="' + groupId + '"] img');
+  lb.photos   = [].map.call(imgs, function (i) { return getWorkingFull(i); });
+  lb.groupId  = groupId;
+  lb.photoIdx = photoIdx;
+
+  var head = document.querySelector('[data-group-label="' + groupId + '"]');
+  lb.name  = head ? head.getAttribute('data-name')  : '';
+  lb.price = head ? head.getAttribute('data-price') : '';
+
+  _renderLb();
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function _renderLb() {
+  var imgEl    = document.getElementById('lb-img');
+  var loaderEl = document.getElementById('lb-loader');
+
+  imgEl.classList.remove('lb-img-visible');
+  loaderEl.style.display = 'block';
+
+  imgEl.onload = function () {
+    loaderEl.style.display = 'none';
+    imgEl.classList.add('lb-img-visible');
+  };
+  imgEl.onerror = function () {
+    loaderEl.style.display = 'none';
+  };
+  imgEl.src = lb.photos[lb.photoIdx];
+
+  document.getElementById('lb-cat').textContent = (lb.name + '  ' + lb.price).trim();
+  document.getElementById('lb-cnt').textContent = (lb.photoIdx + 1) + ' / ' + lb.photos.length;
+
+  document.getElementById('lb-prev').className = 'lb-arrow' + (lb.photos.length < 2 ? ' hidden' : '');
+  document.getElementById('lb-next').className = 'lb-arrow' + (lb.photos.length < 2 ? ' hidden' : '');
+
+  var dotsEl = document.getElementById('lb-dots');
+  dotsEl.innerHTML = '';
+  if (lb.photos.length > 1) {
+    lb.photos.forEach(function (_, i) {
+      var d = document.createElement('div');
+      d.className = 'lb-dot' + (i === lb.photoIdx ? ' active' : '');
+      d.onclick = function () { lb.photoIdx = i; _renderLb(); };
+      dotsEl.appendChild(d);
+    });
+  }
+}
+
+function lbNav(dir) {
+  lb.photoIdx = (lb.photoIdx + dir + lb.photos.length) % lb.photos.length;
+  _renderLb();
+}
+
+function closeLb() {
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Image fallback chain ────────────────────────────────
+function handleImgError(img) {
+  var stage = img.dataset.stage || '0';
+  if (stage === '0' && img.dataset.fallbackB) {
+    img.dataset.stage = '1';
+    img.src = img.dataset.fallbackB;
+    return;
+  }
+  if (stage === '1' && img.dataset.fallbackC) {
+    img.dataset.stage = '2';
+    img.src = img.dataset.fallbackC;
+    return;
+  }
+  var wrap = img.closest('.photo-item');
+  if (wrap && img.dataset.viewUrl) {
+    wrap.innerHTML = '<a href="' + img.dataset.viewUrl + '" target="_blank" rel="noopener" class="view-fallback">🖼️<br>Tap to view photo</a>';
+  }
+}
+
+function getWorkingFull(imgEl) {
+  return imgEl.src.indexOf('lh3.googleusercontent') !== -1
+    ? (imgEl.dataset.full || imgEl.src)
+    : (imgEl.dataset.fullB || imgEl.dataset.full || imgEl.src);
+}
+
+// ── Wire up everything that needs the DOM built (lightbox, toast, etc) ──
+function initPageBehaviors() {
+  document.getElementById('lb-prev').onclick  = function (e) { e.stopPropagation(); lbNav(-1); };
+  document.getElementById('lb-next').onclick  = function (e) { e.stopPropagation(); lbNav(+1); };
+  document.getElementById('lb-close').onclick = function (e) { e.stopPropagation(); closeLb(); };
+  document.getElementById('lb').onclick = function (e) { if (e.target === this) closeLb(); };
+
+  document.addEventListener('keydown', function (e) {
+    if (!document.getElementById('lb').classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(+1);
+    if (e.key === 'Escape')     closeLb();
+  });
+
+  var _tx = null;
+  document.getElementById('lb').addEventListener('touchstart', function (e) { _tx = e.changedTouches[0].clientX; }, { passive: true });
+  document.getElementById('lb').addEventListener('touchend', function (e) {
+    if (_tx === null) return;
+    var dx = e.changedTouches[0].clientX - _tx;
+    if (Math.abs(dx) > 45) lbNav(dx < 0 ? 1 : -1);
+    _tx = null;
+  }, { passive: true });
+
+  (function () {
+    var t = document.getElementById('tapToast');
+    setTimeout(function () { t.classList.add('show'); }, 1200);
+    setTimeout(function () { t.classList.remove('show'); }, 5000);
+  })();
+
+  (function () {
+    var cards = document.querySelectorAll('.tier-card');
+    if (!('IntersectionObserver' in window)) { cards.forEach(function (c) { c.classList.add('visible'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.10 });
+    cards.forEach(function (c) { io.observe(c); });
+  })();
+
+  document.querySelectorAll('.photo-item img').forEach(function (img) {
+    img.classList.add('loading');
+    if (img.complete) { img.classList.add('loaded'); return; }
+    img.addEventListener('load', function () { img.classList.remove('loading'); img.classList.add('loaded'); });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', buildPage);
