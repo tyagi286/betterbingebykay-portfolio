@@ -225,3 +225,161 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   .lb-arrow { width: 36px; height: 36px; font-size: 18px; }
   .product-info-card { gap: 6px 10px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   AESTHETIC PASS — texture, seal, handwritten note, ribbon, skeletons,
+   floating CTA. Appended so the original section above stays intact.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Paper-grain texture on the hero ──────────────────── */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ── Handcrafted wax-seal badge, tucked against the logo ── */
+.handcrafted-seal {
+  position: absolute;
+  bottom: -4px;
+  right: -16px;
+  z-index: 2;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #ffe4ee 72%);
+  border: 2px dashed #c0446e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-13deg);
+  box-shadow: 0 4px 14px rgba(139,26,74,.25);
+}
+.handcrafted-seal span {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1.25;
+  text-align: center;
+  color: #7a1040;
+  letter-spacing: .01em;
+}
+
+/* ── Handwritten note under the tagline ───────────────── */
+.kay-note {
+  font-family: 'Caveat', cursive;
+  font-size: 21px;
+  font-weight: 600;
+  color: #c0446e;
+  margin-top: 10px;
+  transform: rotate(-1.4deg);
+  letter-spacing: .01em;
+}
+
+/* ── "Most Loved" ribbon on a featured tier card ──────── */
+.tier-card.featured {
+  border: 1.5px solid #ecc989;
+  box-shadow: 0 4px 24px rgba(197,150,60,.20), 0 1px 0 rgba(255,255,255,.8) inset;
+}
+.tier-card.featured:hover {
+  box-shadow: 0 10px 40px rgba(197,150,60,.28), 0 1px 0 rgba(255,255,255,.8) inset;
+}
+.ribbon {
+  position: absolute;
+  top: 16px;
+  right: -42px;
+  z-index: 3;
+  width: 160px;
+  text-align: center;
+  background: linear-gradient(135deg, #ecc989, #c99a3f);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 5px 0;
+  transform: rotate(38deg);
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+
+/* ── Skeleton shimmer while photos load from Drive ────── */
+.skeleton-item {
+  border-radius: 14px;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(100deg, #ffe8f0 30%, #fff5f8 50%, #ffe8f0 70%);
+  background-size: 200% 100%;
+  animation: shimmerMove 1.4s ease-in-out infinite;
+}
+@keyframes shimmerMove {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Shared scroll-reveal (tier cards + gallery sections) ── */
+.reveal-target {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .55s ease, transform .55s ease;
+}
+.reveal-target.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Floating order CTA ────────────────────────────────── */
+.floating-cta {
+  position: fixed;
+  bottom: 24px;
+  right: 22px;
+  z-index: 600;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #c0446e, #8b1a4a);
+  box-shadow: 0 8px 24px rgba(139,26,74,.42);
+  color: #fff;
+  text-decoration: none;
+  animation: ctaPulse 2.6s ease-in-out infinite;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.floating-cta:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 30px rgba(139,26,74,.50);
+}
+.floating-cta svg { width: 26px; height: 26px; }
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(139,26,74,.42), 0 0 0 0 rgba(192,68,110,.35); }
+  50%      { box-shadow: 0 8px 24px rgba(139,26,74,.42), 0 0 0 10px rgba(192,68,110,0); }
+}
+.floating-cta-label {
+  position: absolute;
+  right: 68px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #3d1f2a;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.floating-cta:hover .floating-cta-label { opacity: 1; }
+
+@media (max-width: 520px) {
+  .handcrafted-seal { width: 50px; height: 50px; right: -10px; }
+  .handcrafted-seal span { font-size: 8.5px; }
+  .kay-note { font-size: 18px; }
+  .ribbon { top: 12px; right: -46px; width: 150px; font-size: 10px; }
+  .floating-cta { width: 52px; height: 52px; bottom: 18px; right: 16px; }
+  .floating-cta-label { display: none; }
+}

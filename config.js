@@ -32,6 +32,18 @@ const SITE_CONFIG = {
   instagramHandle: '@betterbingebykay',
   tagline: 'Handcrafted with love 🤍',
 
+  // Small handwritten-style line under the tagline. Leave '' to hide it.
+  kayNote: '— every box packed by hand, just for you',
+
+  // Floating "order now" button (bottom-right on every page).
+  // If whatsappNumber is filled in (country code, no + or spaces, e.g.
+  // '919876543210'), the button opens WhatsApp with orderMessage
+  // pre-filled. Otherwise it falls back to your Instagram profile.
+  orderCta: {
+    whatsappNumber: '',
+    orderMessage: "Hi! I'd like to place an order 🍫"
+  },
+
   // Shown once near the top — packaging applies to every order, regardless
   // of which tier or hamper someone picks.
   packaging: {
@@ -76,7 +88,8 @@ const SITE_CONFIG = {
       pieces: '9 pieces',
       weight: '~500g',
       note: 'Your photo, doodle, or name printed on the waffer',
-      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP'
+      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP',
+      featured: true // shows the "Most Loved" ribbon — set on at most one tier
     }
   ],
 

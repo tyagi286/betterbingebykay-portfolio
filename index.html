@@ -4,9 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Better Binge by Kay</title>
+
+  <!-- Favicon: a simple emoji favicon, no image file needed -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%AB%3C/text%3E%3C/svg%3E">
+
+  <!-- Open Graph / Twitter preview cards. These are static (crawlers
+       don't run JS), so if you change displayName, tagline, logo, or the
+       site URL in js/config.js, update the matching lines below too. -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tyagi286.github.io/betterbingebykay-portfolio/">
+  <meta property="og:title" content="Better Binge by Kay">
+  <meta property="og:description" content="Handcrafted eggless brownie boxes & custom hampers — handcrafted with love.">
+  <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU=w1200-h630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Better Binge by Kay">
+  <meta name="twitter:description" content="Handcrafted eggless brownie boxes & custom hampers — handcrafted with love.">
+  <meta name="twitter:image" content="https://lh3.googleusercontent.com/d/1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU=w1200-h630">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,6 +45,7 @@
       <div class="hero-divider"><span>✦</span></div>
       <p class="tagline" id="tagline"></p>
       <div class="handle-badge" id="handleBadge"></div>
+      <p class="kay-note" id="kayNote"></p>
     </div>
 
     <div class="hero-wave">
@@ -95,6 +113,14 @@
     </div>
     <div class="lb-dots" id="lb-dots"></div>
   </div>
+
+  <!-- ░░ FLOATING ORDER CTA ░░ (href/label filled in by js/app.js) -->
+  <a href="#" class="floating-cta" id="floatingCta" target="_blank" rel="noopener" aria-label="Order now">
+    <span class="floating-cta-label" id="floatingCtaLabel"></span>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 3C7.03 3 3 6.58 3 11c0 2.39 1.19 4.53 3.08 5.98-.1.9-.5 2.15-1.58 3.52 1.7-.16 3.13-.82 4.24-1.6.96.27 2.01.42 3.26.42 4.97 0 9-3.58 9-8s-4.03-8-9-8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    </svg>
+  </a>
 
   <script src="config.js"></script>
   <script src="app.js"></script>
