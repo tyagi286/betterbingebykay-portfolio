@@ -41,7 +41,7 @@ const SITE_CONFIG = {
   // pre-filled. Otherwise it falls back to your Instagram profile.
   orderCta: {
     whatsappNumber: '919097224224', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
-    orderMessage: "Hi! I'd like to place an order 🍫"
+    orderMessage: "Hi! I'd like to place an order"
   },
 
   // Shown in a "Where We Deliver" section near the top of the page.
