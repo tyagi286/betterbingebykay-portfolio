@@ -20,7 +20,7 @@
 const SITE_CONFIG = {
 
   // Paste your Google Drive API key here (README.md → step 2)
-  driveApiKey: 'AIzaSyAt2uKgBxn7N0AYAEsFjiBRaUbOMeYFb8E',
+  driveApiKey: 'PASTE_YOUR_DRIVE_API_KEY_HERE',
 
   // Paste your logo's Drive file ID here, or leave '' for no logo
   logoFileId: '1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU',
@@ -40,8 +40,22 @@ const SITE_CONFIG = {
   // '919876543210'), the button opens WhatsApp with orderMessage
   // pre-filled. Otherwise it falls back to your Instagram profile.
   orderCta: {
-    whatsappNumber: '',
+    whatsappNumber: '91XXXXXXXXXX', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
     orderMessage: "Hi! I'd like to place an order 🍫"
+  },
+
+  // Shown in a "Where We Deliver" section near the top of the page.
+  serviceInfo: {
+    happyCustomers: '100+', // shown as a trust line, e.g. "100+ happy customers"
+    cities: ['Chandigarh', 'Mohali', 'Panchkula', 'Derabassi', 'Zirakpur'],
+    pickup: {
+      title: 'Self Pickup',
+      text: 'Sector 44C, near St. Joseph School'
+    },
+    delivery: {
+      title: 'Home Delivery',
+      text: 'Available via Rapido / Uber — delivery fee is separate and paid directly to the rider'
+    }
   },
 
   // Shown once near the top — packaging applies to every order, regardless
