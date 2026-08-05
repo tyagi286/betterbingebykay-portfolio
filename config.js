@@ -40,7 +40,7 @@ const SITE_CONFIG = {
   // '919876543210'), the button opens WhatsApp with orderMessage
   // pre-filled. Otherwise it falls back to your Instagram profile.
   orderCta: {
-    whatsappNumber: '91XXXXXXXXXX', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
+    whatsappNumber: '919097224224', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
     orderMessage: "Hi! I'd like to place an order 🍫"
   },
 
