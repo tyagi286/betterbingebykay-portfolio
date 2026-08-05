@@ -147,6 +147,147 @@ async function fillGalleryPhotos(folderId, groupId, title) {
   wireUpNewPhotos(groupId);
 }
 
+// ── Customer reviews (loaded from reviews.json, independent of Drive) ───
+function starString(rating) {
+  const r = Math.max(0, Math.min(5, Math.round(rating || 5)));
+  return '★'.repeat(r) + '☆'.repeat(5 - r);
+}
+
+function reviewCardHtml(review) {
+  const initials = (review.name || '?').trim().split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
+  const productTag = review.productOrdered ? '<span class="review-product">Ordered: ' + escapeHtml(review.productOrdered) + '</span>' : '';
+  return '<div class="review-card">' +
+      '<div class="review-top">' +
+        '<div class="review-avatar">' + escapeHtml(initials) + '</div>' +
+        '<div class="review-meta">' +
+          '<div class="review-name">' + escapeHtml(review.name || 'Happy Customer') + '</div>' +
+          '<div class="review-stars">' + starString(review.rating) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="review-text">&ldquo;' + escapeHtml(review.text || '') + '&rdquo;</p>' +
+      productTag +
+    '</div>';
+}
+
+async function loadReviews() {
+  const slot = document.getElementById('reviewsSlot');
+  if (!slot) return;
+  try {
+    const res = await fetch('reviews.json', { cache: 'no-store' });
+    if (!res.ok) return; // no file yet — section just stays empty/hidden
+    const reviews = await res.json();
+    if (!Array.isArray(reviews) || reviews.length === 0) return;
+
+    // 3 or fewer: plain static grid. More than 3: auto-scrolling marquee
+    // (list duplicated once so the loop is seamless), paused on hover/touch
+    // so people can actually read a card before it slides away.
+    const useMarquee = reviews.length > 3;
+    const cardsHtml = useMarquee
+      ? [].concat(reviews, reviews).map(reviewCardHtml).join('\n')
+      : reviews.map(reviewCardHtml).join('\n');
+
+    const bodyHtml = useMarquee
+      ? `<div class="reviews-marquee-wrap" id="reviewsMarquee">
+           <div class="reviews-marquee-track">${cardsHtml}</div>
+         </div>`
+      : `<div class="reviews-grid">${cardsHtml}</div>`;
+
+    slot.innerHTML = `
+      <div class="section-block reveal-target" data-group-label="reviews" data-name="Reviews" data-price="">
+        <div class="section-head">
+          <h2>Loved by Our Customers</h2>
+          <div class="section-divider"><span>✦</span></div>
+          <p>Real words from real orders.</p>
+        </div>
+        ${bodyHtml}
+      </div>`;
+
+    if (useMarquee) {
+      const wrap = document.getElementById('reviewsMarquee');
+      const track = wrap.querySelector('.reviews-marquee-track');
+
+      // Constant-speed crawl (not "N seconds per card") is what makes this
+      // read as a calm, editorial scroll rather than a ticker — same
+      // technique used on testimonial walls like Clerk's or Linear's.
+      const PX_PER_SECOND = 34; // slow, readable pace — lower = slower
+      track.style.animationPlayState = 'paused';
+      requestAnimationFrame(function () {
+        const singleSetWidth = track.scrollWidth / 2; // track holds 2 copies
+        const duration = Math.max(20, singleSetWidth / PX_PER_SECOND);
+        track.style.animationDuration = duration.toFixed(1) + 's';
+        track.style.animationPlayState = 'running';
+      });
+
+      const pause = function () { track.style.animationPlayState = 'paused'; };
+      const resume = function () { track.style.animationPlayState = 'running'; };
+      wrap.addEventListener('mouseenter', pause);
+      wrap.addEventListener('mouseleave', resume);
+      wrap.addEventListener('touchstart', pause, { passive: true });
+      wrap.addEventListener('touchend', resume, { passive: true });
+    }
+
+    const el = slot.querySelector('.reveal-target');
+    if (el) {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.10 });
+        io.observe(el);
+      } else {
+        el.classList.add('visible');
+      }
+    }
+  } catch (e) {
+    // reviews.json missing, malformed, or fetch blocked (e.g. opening the
+    // file directly instead of via a real server) — fail silently.
+  }
+}
+
+// ── Where We Deliver (static, config-driven, no Drive fetch needed) ─────
+function renderDeliverySection(cfg) {
+  const info = cfg.serviceInfo;
+  if (!info) return '';
+
+  const trustHtml = info.happyCustomers
+    ? `<p class="delivery-trust">🎉 Loved by ${escapeHtml(info.happyCustomers)} happy customers</p>` : '';
+
+  const citiesHtml = (info.cities || []).map(function (c) {
+    return '<span class="city-chip">📍 ' + escapeHtml(c) + '</span>';
+  }).join('\n');
+
+  const pickupHtml = info.pickup ? `
+    <div class="delivery-method">
+      <span class="dm-icon">🏠</span>
+      <div>
+        <div class="dm-title">${escapeHtml(info.pickup.title)}</div>
+        <div class="dm-text">${escapeHtml(info.pickup.text)}</div>
+      </div>
+    </div>` : '';
+
+  const deliveryHtml = info.delivery ? `
+    <div class="delivery-method">
+      <span class="dm-icon">🛵</span>
+      <div>
+        <div class="dm-title">${escapeHtml(info.delivery.title)}</div>
+        <div class="dm-text">${escapeHtml(info.delivery.text)}</div>
+      </div>
+    </div>` : '';
+
+  return `
+  <div class="section-block reveal-target" data-group-label="delivery" data-name="Delivery" data-price="">
+    <div class="section-head">
+      <h2>Where We Deliver</h2>
+      <div class="section-divider"><span>✦</span></div>
+      <p>Proudly serving the Tricity area — pickup and delivery both available.</p>
+    </div>
+    ${trustHtml}
+    <div class="delivery-cities">${citiesHtml}</div>
+    <div class="delivery-methods">${pickupHtml}${deliveryHtml}</div>
+  </div>`;
+}
+
 // ── Build the whole page ─────────────────────────────────────────────────
 async function buildPage() {
   const cfg = SITE_CONFIG;
@@ -160,8 +301,8 @@ async function buildPage() {
     logoWrap.innerHTML = '<div class="logo-ring"></div>' +
       '<img class="logo" src="https://lh3.googleusercontent.com/d/' + cfg.logoFileId.trim() + '=w300" ' +
       'alt="' + escapeHtml(cfg.displayName) + ' logo" ' +
-      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">'
-      // + '<div class="handcrafted-seal"><span>100%<br>Handcrafted</span></div>'
+      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">' 
+      // +'<div class="handcrafted-seal"><span>100%<br>Handcrafted</span></div>'
       ;
   } else {
     logoWrap.style.display = 'none';
@@ -186,16 +327,22 @@ async function buildPage() {
 
   document.getElementById('footerBrand').textContent = cfg.displayName;
 
-  // Floating CTA: WhatsApp if configured, otherwise fall back to Instagram
+  // Floating CTA: WhatsApp if a real number is configured, otherwise fall
+  // back to Instagram. The pill text is always visible now (not just on
+  // hover) since hover tooltips don't work on phones, which is most of
+  // this site's traffic.
   const cta = document.getElementById('floatingCta');
   const ctaLabel = document.getElementById('floatingCtaLabel');
-  const wa = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
+  const waRaw = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
+  const wa = /^\d{10,15}$/.test(waRaw) ? waRaw : ''; // ignore unfilled placeholder like '91XXXXXXXXXX'
   if (wa) {
     cta.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(cfg.orderCta.orderMessage || '');
-    ctaLabel.textContent = 'Order on WhatsApp';
+    cta.setAttribute('aria-label', 'Order on WhatsApp');
+    ctaLabel.textContent = 'Click to Order';
   } else if (cfg.instagramHandle) {
     cta.href = 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '');
-    ctaLabel.textContent = 'Order on Instagram';
+    cta.setAttribute('aria-label', 'Order on Instagram');
+    ctaLabel.textContent = 'DM to Order';
   } else {
     cta.style.display = 'none';
   }
@@ -203,6 +350,8 @@ async function buildPage() {
   // Section shells render instantly (with skeleton placeholders); each
   // section's photos then swap in as soon as its own Drive request lands,
   // instead of the whole page waiting on the slowest folder.
+  document.getElementById('deliverySlot').innerHTML = renderDeliverySection(cfg);
+
   document.getElementById('packagingSlot').innerHTML =
     renderGalleryShell(cfg.packaging.title, cfg.packaging.note, null, 'packaging', cfg.packaging.testimonial);
 
@@ -218,6 +367,7 @@ async function buildPage() {
   fillGalleryPhotos(cfg.packaging.folderId, 'packaging', cfg.packaging.title);
   cfg.tiers.forEach(function (tier, i) { fillTierPhotos(tier, i); });
   fillGalleryPhotos(cfg.hamper.folderId, 'hamper', cfg.hamper.title);
+  loadReviews();
 }
 
 // ── Lightbox state ────────────────────────────────────────────────────
