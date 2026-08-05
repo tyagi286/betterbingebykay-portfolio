@@ -20,7 +20,7 @@
 const SITE_CONFIG = {
 
   // Paste your Google Drive API key here (README.md → step 2)
-  driveApiKey: 'PASTE_YOUR_DRIVE_API_KEY_HERE',
+  driveApiKey: 'AIzaSyAt2uKgBxn7N0AYAEsFjiBRaUbOMeYFb8E',
 
   // Paste your logo's Drive file ID here, or leave '' for no logo
   logoFileId: '1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU',
