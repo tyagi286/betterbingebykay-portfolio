@@ -148,25 +148,87 @@ async function fillGalleryPhotos(folderId, groupId, title) {
 }
 
 // ── Customer reviews (loaded from reviews.json, independent of Drive) ───
+
+// Global store: reviewImagesData[i] = [{thumb, full}] for review i
+var reviewImagesData = [];
+
 function starString(rating) {
   const r = Math.max(0, Math.min(5, Math.round(rating || 5)));
   return '★'.repeat(r) + '☆'.repeat(5 - r);
 }
 
-function reviewCardHtml(review) {
+// Build the Google Drive image URL variants for a single file ID
+function driveThumbUrl(fileId, size) {
+  return 'https://lh3.googleusercontent.com/d/' + fileId.trim() + '=w' + size;
+}
+
+// Open the lightbox for a specific review's image set (bypasses DOM querying
+// so it works even when cards are duplicated inside the marquee track).
+function openReviewLb(reviewIdx, photoIdx) {
+  var images = reviewImagesData[reviewIdx];
+  if (!images || images.length === 0) return;
+
+  lb.photos   = images.map(function (img) { return img.full; });
+  lb.groupId  = 'review-' + reviewIdx;
+  lb.photoIdx = photoIdx;
+  lb.name     = '📸 Customer Photos';
+  lb.price    = '';
+
+  _renderLb();
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function reviewCardHtml(review, index) {
   const initials = (review.name || '?').trim().split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
-  const productTag = review.productOrdered ? '<span class="review-product">Ordered: ' + escapeHtml(review.productOrdered) + '</span>' : '';
-  return '<div class="review-card">' +
-      '<div class="review-top">' +
+
+  // Product pill — lives inside the footer meta block now
+  const productTag = review.productOrdered
+    ? '<div class="review-product">' + escapeHtml(review.productOrdered) + '</div>'
+    : '';
+
+  // ── Photo strip (only when the review carries Drive image IDs) ──────────
+  var imagesHtml = '';
+  if (review.images && review.images.length > 0) {
+    var thumbItems = review.images.map(function (fileId, imgIdx) {
+      var thumb = driveThumbUrl(fileId, 400);
+      return '<div class="review-img-thumb" ' +
+               'onclick="openReviewLb(' + index + ',' + imgIdx + ')" ' +
+               'title="Tap to view full size">' +
+               '<img src="' + escapeHtml(thumb) + '" ' +
+                    'alt="' + escapeHtml((review.name || '') + ' photo ' + (imgIdx + 1)) + '" ' +
+                    'loading="lazy" ' +
+                    'onerror="this.closest(\'.review-img-thumb\').style.display=\'none\'">' +
+               '<div class="review-img-overlay"><span>🔍</span></div>' +
+               '<div class="review-img-zoom-badge">🔍</div>' +
+             '</div>';
+    }).join('');
+    imagesHtml =
+      '<div class="review-img-label"><span>📷</span> ' +
+        review.images.length + ' Photo' + (review.images.length > 1 ? 's' : '') +
+      '</div>' +
+      '<div class="review-images-strip">' + thumbItems + '</div>' +
+      '<div class="review-img-tap-hint">👆 Tap photos to view full size</div>';
+  }
+
+  return (
+    '<div class="review-card' + (review.images && review.images.length > 0 ? ' has-photos' : '') + '">' +
+      // Large background quote glyph — purely decorative
+      '<div class="review-deco-quote">\u201C</div>' +
+      // Body copy
+      '<p class="review-text">' + escapeHtml(review.text || '') + '</p>' +
+      // Footer: avatar + name + stars + product
+      '<div class="review-card-footer">' +
         '<div class="review-avatar">' + escapeHtml(initials) + '</div>' +
         '<div class="review-meta">' +
           '<div class="review-name">' + escapeHtml(review.name || 'Happy Customer') + '</div>' +
           '<div class="review-stars">' + starString(review.rating) + '</div>' +
+          productTag +
         '</div>' +
       '</div>' +
-      '<p class="review-text">&ldquo;' + escapeHtml(review.text || '') + '&rdquo;</p>' +
-      productTag +
-    '</div>';
+      imagesHtml +
+    '</div>'
+  );
 }
 
 async function loadReviews() {
@@ -174,62 +236,77 @@ async function loadReviews() {
   if (!slot) return;
   try {
     const res = await fetch('reviews.json', { cache: 'no-store' });
-    if (!res.ok) return; // no file yet — section just stays empty/hidden
+    if (!res.ok) return;
     const reviews = await res.json();
     if (!Array.isArray(reviews) || reviews.length === 0) return;
 
-    // 3 or fewer: plain static grid. More than 3: auto-scrolling marquee
-    // (list duplicated once so the loop is seamless), paused on hover/touch
-    // so people can actually read a card before it slides away.
-    const useMarquee = reviews.length > 3;
-    const cardsHtml = useMarquee
-      ? [].concat(reviews, reviews).map(reviewCardHtml).join('\n')
-      : reviews.map(reviewCardHtml).join('\n');
-
-    const bodyHtml = useMarquee
-      ? `<div class="reviews-marquee-wrap" id="reviewsMarquee">
-           <div class="reviews-marquee-track">${cardsHtml}</div>
-         </div>`
-      : `<div class="reviews-grid">${cardsHtml}</div>`;
-
-    slot.innerHTML = `
-      <div class="section-block reveal-target" data-group-label="reviews" data-name="Reviews" data-price="">
-        <div class="section-head">
-          <h2>Loved by Our Customers</h2>
-          <div class="section-divider"><span>✦</span></div>
-          <p>Real words from real orders.</p>
-        </div>
-        ${bodyHtml}
-      </div>`;
-
-    if (useMarquee) {
-      const wrap = document.getElementById('reviewsMarquee');
-      const track = wrap.querySelector('.reviews-marquee-track');
-
-      // Constant-speed crawl (not "N seconds per card") is what makes this
-      // read as a calm, editorial scroll rather than a ticker — same
-      // technique used on testimonial walls like Clerk's or Linear's.
-      const PX_PER_SECOND = 34; // slow, readable pace — lower = slower
-      track.style.animationPlayState = 'paused';
-      requestAnimationFrame(function () {
-        const singleSetWidth = track.scrollWidth / 2; // track holds 2 copies
-        const duration = Math.max(20, singleSetWidth / PX_PER_SECOND);
-        track.style.animationDuration = duration.toFixed(1) + 's';
-        track.style.animationPlayState = 'running';
+    // Pre-compute image URL data so openReviewLb() never has to touch the DOM.
+    // This makes it safe to call from duplicated marquee cards too.
+    reviewImagesData = reviews.map(function (review) {
+      if (!review.images || review.images.length === 0) return [];
+      return review.images.map(function (fileId) {
+        return { thumb: driveThumbUrl(fileId, 400), full: driveThumbUrl(fileId, 1600) };
       });
+    });
 
-      const pause = function () { track.style.animationPlayState = 'paused'; };
-      const resume = function () { track.style.animationPlayState = 'running'; };
-      wrap.addEventListener('mouseenter', pause);
-      wrap.addEventListener('mouseleave', resume);
-      wrap.addEventListener('touchstart', pause, { passive: true });
-      wrap.addEventListener('touchend', resume, { passive: true });
+    // ── Dual-track infinite scroll ────────────────────────────────────────
+    // Row 1 scrolls left  (original order, duplicated for seamless loop).
+    // Row 2 scrolls right (reversed order, duplicated) at a slightly slower
+    // pace — the speed difference creates a satisfying sense of depth.
+    // Both rows pause together on hover / touch.
+    const row1Cards = reviews.map(function (r, i) { return reviewCardHtml(r, i); });
+    const rev = reviews.slice().reverse();
+    const row2Cards = rev.map(function (r, i) { return reviewCardHtml(r, reviews.length - 1 - i); });
+
+    const bodyHtml =
+      '<div class="reviews-dual-wrap" id="reviewsDualWrap">' +
+        '<div class="reviews-track-row"         id="rvTrack1">' + row1Cards.concat(row1Cards).join('') + '</div>' +
+        '<div class="reviews-track-row reverse" id="rvTrack2">' + row2Cards.concat(row2Cards).join('') + '</div>' +
+      '</div>';
+
+    slot.innerHTML =
+      '<div class="section-block reveal-target" data-group-label="reviews" data-name="Reviews" data-price="">' +
+        '<div class="reviews-section-bg">' +
+          '<div class="section-head">' +
+            '<div class="reviews-eyebrow">\u2756 customer love \u2756</div>' +
+            '<h2>What They\'re Saying</h2>' +
+            '<div class="section-divider"><span>\u2756</span></div>' +
+            '<p>Every kind word keeps us baking with love.</p>' +
+          '</div>' +
+          bodyHtml +
+        '</div>' +
+      '</div>';
+
+    // Set each track's duration from its measured pixel width and a target speed
+    function setTrackSpeed(trackEl, pxPerSec) {
+      trackEl.style.animationPlayState = 'paused';
+      requestAnimationFrame(function () {
+        var single = trackEl.scrollWidth / 2; // track holds 2 copies
+        var dur    = Math.max(12, single / pxPerSec);
+        trackEl.style.animationDuration    = dur.toFixed(1) + 's';
+        trackEl.style.animationPlayState   = 'running';
+      });
     }
 
-    const el = slot.querySelector('.reveal-target');
+    var track1 = document.getElementById('rvTrack1');
+    var track2 = document.getElementById('rvTrack2');
+    setTrackSpeed(track1, 30); // px / s — left row
+    setTrackSpeed(track2, 22); // px / s — right row (slightly slower = depth)
+
+    // Pause both simultaneously on hover or touch
+    var wrap   = document.getElementById('reviewsDualWrap');
+    var pause  = function () { track1.style.animationPlayState = 'paused';  track2.style.animationPlayState = 'paused';  };
+    var resume = function () { track1.style.animationPlayState = 'running'; track2.style.animationPlayState = 'running'; };
+    wrap.addEventListener('mouseenter', pause);
+    wrap.addEventListener('mouseleave', resume);
+    wrap.addEventListener('touchstart', pause,  { passive: true });
+    wrap.addEventListener('touchend',   resume, { passive: true });
+
+    // Scroll-reveal for the section wrapper
+    var el = slot.querySelector('.reveal-target');
     if (el) {
       if ('IntersectionObserver' in window) {
-        const io = new IntersectionObserver(function (entries) {
+        var io = new IntersectionObserver(function (entries) {
           entries.forEach(function (en) {
             if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
           });
@@ -240,8 +317,7 @@ async function loadReviews() {
       }
     }
   } catch (e) {
-    // reviews.json missing, malformed, or fetch blocked (e.g. opening the
-    // file directly instead of via a real server) — fail silently.
+    // reviews.json missing, malformed, or fetch blocked — fail silently.
   }
 }
 
