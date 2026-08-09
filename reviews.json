@@ -1,30 +1,64 @@
 [
     {
-      "name": "Deeksha",
-      "rating": "",
-      "productOrdered": "The Signature",
-      "images": [],
-      "text": "The brownie was absolutely amazing! Every bite was soft, rich, and full of flavor. It's clear that a lot of love and effort goes into your baking. Keep following your passion—you have real talent, and I'm sure you'll achieve great success. Wishing you all the best! From now on, I'll definitely be ordering from you only. Can't wait to try more of your delicious creations!!! Thank you so much"
+        "name": "Deeksha",
+        "rating": "5",
+        "productOrdered": "The Mini",
+        "images": ["1Zgz61_P26jJGaddJJ6ILvneOaByrzZMI"],
+        "text": "The brownie was absolutely amazing! Every bite was soft, rich, and full of flavor. It's clear that a lot of love and effort goes into your baking. Keep following your passion—you have real talent, and I'm sure you'll achieve great success. Wishing you all the best! From now on, I'll definitely be ordering from you only. Can't wait to try more of your delicious creations!!! Thank you so much"
     },
     {
-        "name": "Riya",
-        "rating": "",
-        "productOrdered": "The Personalised",
-        "images": [],
-        "text": "Thank you so much Kirti for making my boyfriend's birthday so special. The cake was exactly what I wanted—it looked beautiful and tasted absolutely amazing. It was fresh, soft, and perfectly chocolatey. Since it was just the two of us celebrating, I wanted everything to feel special, and your cake made the moment even more memorable. Seeing the smile on his face when he saw the cake made my day too. Thank you for your hard work, attention to detail, and for being a part of such a beautiful memory. I'll definitely be ordering from you again. Highly recommended!"
+        "name": "Arfat Khan",
+        "rating": "5",
+        "productOrdered": "The Signature",
+        "images": [
+            "11P_m3XZ7pKthC471a1SCmFWFxSSl3iID",
+            "1aGz_14YaqD-hULtOVLoEVoAlKe4s8B1x"
+        ],
+        "text": "Thanks a lot maam bhut acha taste tha or bubu ko bhut pasand aaya"
     },
     {
-        "name": "Rajanmeet Kaur",
-        "rating": "",
+        "name": "Muskan Dhamija",
+        "rating": "5",
+        "productOrdered": "The Mini",
+        "images": [
+            "1AkRW91cAeAH0r7vd5SUaxffZZ9otkzF7"
+        ],
+        "text": "Hi Kriti! 😊 Thank you so much for the beautiful brownie cake🤎✨ One of the best brownie cakes I have had!😍🤎 So soft, fudgy, rich, and absolutely delicious ✨ It tasted fresh, high quality, and wonderfully chocolatey💕 It felt much lighter than regular cakes and was a perfect guilt-free treat. 🌿💖 Beautiful presentation, excellent taste🎂✨👏 Highly recommended! ✨"
+    },
+    {
+        "name": "Sudhir kumar",
+        "rating": "5",
         "productOrdered": "The Classic",
-        "images": [],
-        "text": "Thankyou for the brownies. They really were too yum. All the guests loved it"
+        "images": [
+            "1o3LEEPGGpyFVtDOjfd0k3ngURv_2wpxj"
+        ],
+        "text": "Thank you so much! The cake was incredibly delicious and looked even better in person. You customized it to absolute perfection, and everyone loved it. Great quality and service!"
     },
     {
-    "name": "Arfat Khan",
-    "rating": "",
-    "productOrdered": "The Signature",
-    "images": ["11P_m3XZ7pKthC471a1SCmFWFxSSl3iID", "1aGz_14YaqD-hULtOVLoEVoAlKe4s8B1x"],
-    "text": "Thanks a lot maam bhut acha taste tha or bubu ko bhut pasand aaya"
-  }
-  ]
+        "name": "Noor",
+        "rating": "5",
+        "productOrdered": "The Classic",
+        "images": [
+            "1lsBqp059pj4pL1805CVClMiA7ezzdVTg"
+        ],
+        "text": "He just loved it.....thankyouuuu his smile means a lot to me and that's because of you...thankyouuuuuu thankyouuuu so much😊"
+    },
+    {
+        "name": "Shameen",
+        "rating": "5",
+        "productOrdered": "The Signature",
+        "images": [
+            "1-bhbh_aazL0UJLwAoyVkEAO1He8e4PBc"
+        ],
+        "text": "Kirti ,I absolutely loved my order! Everything was beautifully done and I can't wait to order again. 🥰 Thank you for such a wonderful experience. Wishing your business continued growth and success and wish u many many happy customers ✨"
+    },
+    {
+        "name": "Srishti",
+        "rating": "5",
+        "productOrdered": "The Signature",
+        "images": [
+            "1a61srKjqQ8mO2-INkATO9Xql0vqsxcAk"
+        ],
+        "text": "Hi The brownie was to yummmmm❤️ Infant she also loved the brownie and chocolate And my friends also they were asking that from where have you ordered this  After eating brownie my friends got crazy 🫶🏻 They just love it❤️ Thanku so much ❤️"
+    }
+]
