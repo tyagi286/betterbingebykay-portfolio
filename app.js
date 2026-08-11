@@ -147,6 +147,26 @@ async function fillGalleryPhotos(folderId, groupId, title) {
   wireUpNewPhotos(groupId);
 }
 
+// ── Add-Ons (static chip list — roses, cards, bouquets, etc) ────────────
+function renderAddOnsSection(cfg) {
+  const addOns = cfg.addOns;
+  if (!addOns || !addOns.items || addOns.items.length === 0) return '';
+
+  const chipsHtml = addOns.items.map(function (item) {
+    return '<span class="city-chip">' + escapeHtml(item) + '</span>';
+  }).join('\n');
+
+  return `
+  <div class="section-block reveal-target" data-group-label="addons" data-name="Add-Ons" data-price="">
+    <div class="section-head">
+      <h2>${escapeHtml(addOns.title)}</h2>
+      <div class="section-divider"><span>✦</span></div>
+      <p>${escapeHtml(addOns.note)}</p>
+    </div>
+    <div class="delivery-cities">${chipsHtml}</div>
+  </div>`;
+}
+
 // ── Customer reviews (loaded from reviews.json, independent of Drive) ───
 
 // Global store: reviewImagesData[i] = [{thumb, full}] for review i
@@ -370,16 +390,14 @@ async function buildPage() {
 
   document.title = cfg.displayName;
 
-  // Logo + handcrafted seal badge — just an <img src>, no base64 needed
-  // outside Apps Script
+  // Logo — just an <img src>, no base64 needed outside Apps Script
+  // (handcrafted seal badge intentionally removed per latest design pass)
   const logoWrap = document.getElementById('logoWrap');
   if (cfg.logoFileId && cfg.logoFileId.trim() !== '') {
     logoWrap.innerHTML = '<div class="logo-ring"></div>' +
       '<img class="logo" src="https://lh3.googleusercontent.com/d/' + cfg.logoFileId.trim() + '=w300" ' +
       'alt="' + escapeHtml(cfg.displayName) + ' logo" ' +
-      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">' 
-      // +'<div class="handcrafted-seal"><span>100%<br>Handcrafted</span></div>'
-      ;
+      'onerror="this.closest(\'.logo-wrap\').style.display=\'none\'">';
   } else {
     logoWrap.style.display = 'none';
   }
@@ -436,6 +454,8 @@ async function buildPage() {
 
   document.getElementById('hamperSlot').innerHTML =
     renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null);
+
+  document.getElementById('addOnsSlot').innerHTML = renderAddOnsSection(cfg);
 
   initPageBehaviors();
 

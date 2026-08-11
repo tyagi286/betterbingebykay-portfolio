@@ -41,7 +41,7 @@ const SITE_CONFIG = {
   // pre-filled. Otherwise it falls back to your Instagram profile.
   orderCta: {
     whatsappNumber: '919097224224', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
-    orderMessage: "Hi! I'd like to place an order"
+    orderMessage: "Hi! I'd like to place an order."
   },
 
   // Shown in a "Where We Deliver" section near the top of the page.
@@ -69,22 +69,14 @@ const SITE_CONFIG = {
 
   tiers: [
     {
-      label: 'The Mini',
-      price: '₹249',
-      emoji: '🍫',
-      pieces: '4 pieces',
-      weight: '~220g',
-      note: 'Classic flavours, no topper',
-      folderId: '1nPWuglUqnhN3zTDXNiSuy4FNlUvubmN1'
-    },
-    {
-      label: 'The Classic',
-      price: '₹499',
-      emoji: '🍰',
+      label: 'The Personalised',
+      price: '₹749',
+      emoji: '🎨',
       pieces: '9 pieces',
       weight: '~500g',
-      note: 'Classic flavours, no topper',
-      folderId: '1AkUOwts6ixUFXlH4euiauFS3AjXityx1'
+      note: 'Your photo, doodle, or name printed on the waffer',
+      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP',
+      featured: true // shows the "Most Loved" ribbon — set on at most one tier
     },
     {
       label: 'The Signature',
@@ -96,14 +88,22 @@ const SITE_CONFIG = {
       folderId: '1wYJ65OOsnuK3RKQ-_HhJAyKJPUPV0pBr'
     },
     {
-      label: 'The Personalised',
-      price: '₹749',
-      emoji: '🎨',
+      label: 'The Classic',
+      price: '₹499',
+      emoji: '🍰',
       pieces: '9 pieces',
       weight: '~500g',
-      note: 'Your photo, doodle, or name printed on the waffer',
-      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP',
-      featured: true // shows the "Most Loved" ribbon — set on at most one tier
+      note: 'Classic flavours, no topper',
+      folderId: '1AkUOwts6ixUFXlH4euiauFS3AjXityx1'
+    },
+    {
+      label: 'The Mini',
+      price: '₹249',
+      emoji: '🍫',
+      pieces: '4 pieces',
+      weight: '~220g',
+      note: 'Classic flavours, no topper',
+      folderId: '1nPWuglUqnhN3zTDXNiSuy4FNlUvubmN1'
     }
   ],
 
@@ -111,8 +111,18 @@ const SITE_CONFIG = {
   // so this shows examples rather than a fixed grid of exact prices.
   hamper: {
     title: 'Custom Hampers',
-    note: 'Pair your cake with a birthday card, roses, or a flower bouquet — tell us the occasion and we\'ll build it around it.',
+    note: 'A cake, beautifully paired — tell us the occasion and we\'ll build it around it.',
     priceNote: 'Starting from ₹999 · fully customisable',
     folderId: '1E-bibNhzE11afWh3GixO77fcOXWFa7wE'
+  },
+
+  // Shown as a lightweight chip section at the very end of the product
+  // list — things that can be added to any order, not full products
+  // with their own photo galleries.
+  addOns: {
+    title: 'Add-Ons',
+    note: 'Make any order extra special.',
+    items: ['🎂 Birthday Card', '🌹 Roses', '💐 Flower Bouquet'],
+    folderId : '14TRczyNEbaPkNDb6oeq5__8MWSwtQBi_'
   }
 };
