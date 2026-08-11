@@ -286,18 +286,36 @@ async function loadReviews() {
     });
 
     // ── Dual-track infinite scroll ────────────────────────────────────────
-    // Row 1 scrolls left  (original order, duplicated for seamless loop).
-    // Row 2 scrolls right (reversed order, duplicated) at a slightly slower
-    // pace — the speed difference creates a satisfying sense of depth.
-    // Both rows pause together on hover / touch.
-    const row1Cards = reviews.map(function (r, i) { return reviewCardHtml(r, i); });
-    const rev = reviews.slice().reverse();
-    const row2Cards = rev.map(function (r, i) { return reviewCardHtml(r, reviews.length - 1 - i); });
+    // Row 1 scrolls left  (original order). Row 2 scrolls right (reversed
+    // order) at a slightly slower pace — the speed difference creates a
+    // satisfying sense of depth. Both rows pause together on hover / touch.
+    //
+    // With few reviews, one pass through the list isn't wide enough to
+    // fill a normal screen — that leaves a visible gap of empty track
+    // scrolling past before the looped copy catches up (the "goes blank"
+    // bug). Fix: repeat the review set enough times to build one "lap"
+    // that's comfortably wider than any realistic screen, THEN duplicate
+    // that whole lap once for the seamless loop. Scales down naturally as
+    // more reviews get added.
+    const MIN_CARDS_PER_LAP = 14;
+    const repeatFactor = Math.max(1, Math.ceil(MIN_CARDS_PER_LAP / reviews.length));
+
+    function buildLap(list, indexMap) {
+      var out = [];
+      for (var t = 0; t < repeatFactor; t++) {
+        list.forEach(function (item, i) { out.push(reviewCardHtml(item, indexMap(i))); });
+      }
+      return out.join('');
+    }
+
+    const revList = reviews.slice().reverse();
+    const lap1 = buildLap(reviews, function (i) { return i; });
+    const lap2 = buildLap(revList, function (i) { return reviews.length - 1 - i; });
 
     const bodyHtml =
       '<div class="reviews-dual-wrap" id="reviewsDualWrap">' +
-        '<div class="reviews-track-row"         id="rvTrack1">' + row1Cards.concat(row1Cards).join('') + '</div>' +
-        '<div class="reviews-track-row reverse" id="rvTrack2">' + row2Cards.concat(row2Cards).join('') + '</div>' +
+        '<div class="reviews-track-row"         id="rvTrack1">' + lap1 + lap1 + '</div>' +
+        '<div class="reviews-track-row reverse" id="rvTrack2">' + lap2 + lap2 + '</div>' +
       '</div>';
 
     slot.innerHTML =
