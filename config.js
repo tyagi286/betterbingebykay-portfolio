@@ -121,8 +121,8 @@ const SITE_CONFIG = {
   // with their own photo galleries.
   addOns: {
     title: 'Add-Ons',
-    note: 'Make any order extra special.',
-    items: ['🎂 Birthday Card', '🌹 Roses', '💐 Flower Bouquet']
+    note: 'Make any order extra special — including a beautifully handwritten card, just for them.',
+    items: ['🎂 Handwritten Birthday Card', '🌹 Roses', '💐 Flower Bouquet']
   },
 
   // Shown as a short trust strip near the order button — explains the
