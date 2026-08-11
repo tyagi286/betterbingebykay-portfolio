@@ -167,6 +167,22 @@ function renderAddOnsSection(cfg) {
   </div>`;
 }
 
+// ── Our Promise / payment policy strip ───────────────────────────────────
+function renderPolicySection(cfg) {
+  const policy = cfg.paymentPolicy;
+  if (!policy || !policy.points || policy.points.length === 0) return '';
+
+  const pointsHtml = policy.points.map(function (p) {
+    return '<div class="policy-point"><span class="policy-icon">' + escapeHtml(p.icon || '') + '</span><span>' + escapeHtml(p.text) + '</span></div>';
+  }).join('\n');
+
+  return `
+  <div class="policy-strip reveal-target" data-group-label="policy" data-name="Policy" data-price="">
+    <div class="policy-title">${escapeHtml(policy.title)}</div>
+    <div class="policy-points">${pointsHtml}</div>
+  </div>`;
+}
+
 // ── Customer reviews (loaded from reviews.json, independent of Drive) ───
 
 // Global store: reviewImagesData[i] = [{thumb, full}] for review i
@@ -456,6 +472,8 @@ async function buildPage() {
     renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null);
 
   document.getElementById('addOnsSlot').innerHTML = renderAddOnsSection(cfg);
+
+  document.getElementById('policySlot').innerHTML = renderPolicySection(cfg);
 
   initPageBehaviors();
 

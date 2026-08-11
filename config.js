@@ -41,7 +41,7 @@ const SITE_CONFIG = {
   // pre-filled. Otherwise it falls back to your Instagram profile.
   orderCta: {
     whatsappNumber: '919097224224', // ← replace with your real number: country code + number, no + or spaces or leading 0 (e.g. '919876543210' for +91 98765 43210)
-    orderMessage: "Hi! I'd like to place an order."
+    orderMessage: "Hi! I'd like to place an order 🍫"
   },
 
   // Shown in a "Where We Deliver" section near the top of the page.
@@ -122,7 +122,18 @@ const SITE_CONFIG = {
   addOns: {
     title: 'Add-Ons',
     note: 'Make any order extra special.',
-    items: ['🎂 Birthday Card', '🌹 Roses', '💐 Flower Bouquet'],
-    folderId : '14TRczyNEbaPkNDb6oeq5__8MWSwtQBi_'
+    items: ['🎂 Birthday Card', '🌹 Roses', '💐 Flower Bouquet']
+  },
+
+  // Shown as a short trust strip near the order button — explains the
+  // advance-payment policy plainly, so it reads as reassurance rather
+  // than just a rule.
+  paymentPolicy: {
+    title: 'Our Promise',
+    points: [
+      { icon: '💳', text: '50% advance to confirm — since each box is made fresh, just for your order' },
+      { icon: '↩️', text: '100% refunded if we ever have to cancel your order' },
+      { icon: '🔒', text: 'Pay securely via UPI — instant, and confirmed right away in chat' }
+    ]
   }
 };

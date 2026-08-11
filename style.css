@@ -499,3 +499,22 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   .review-card { flex-basis: 250px; padding: 20px 18px 18px; }
   .review-deco-quote { font-size: 64px; }
 }
+
+/* ── OUR PROMISE / PAYMENT POLICY STRIP ───────────────────────────────── */
+.policy-strip {
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe4ee 100%);
+  border: 1.5px solid #f9c8d8;
+  border-radius: 22px;
+  padding: 24px 26px;
+  text-align: center;
+}
+.policy-title {
+  font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 20px;
+  color: #7a1040; margin-bottom: 16px;
+}
+.policy-points { display: flex; flex-direction: column; gap: 10px; max-width: 480px; margin: 0 auto; }
+.policy-point {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  font-size: 13.5px; color: #8b2a4a; font-weight: 500; line-height: 1.4;
+}
+.policy-icon { font-size: 17px; flex-shrink: 0; }
