@@ -523,3 +523,472 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   font-size: 13.5px; color: #8b2a4a; font-weight: 500; line-height: 1.4;
 }
 .policy-icon { font-size: 17px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PROMO SPOTLIGHT — Seasonal / limited-edition featured offer banner.
+   All content values are driven by promo.json; styles are purely visual.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Hide the slot when empty so it doesn't consume the section gap */
+#promoSlot:empty { display: none; }
+
+/* ── Outer glow card ─────────────────────────────────────────────────── */
+.promo-spotlight {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  background: linear-gradient(148deg, #fffcf4 0%, #fff6ed 35%, #fff9f5 65%, #fffcf4 100%);
+  box-shadow:
+    0 0 0 2.5px #e8b923,
+    0 0 32px rgba(232,185,35,.50),
+    0 0 64px rgba(192,68,110,.22),
+    0 14px 52px rgba(100,30,50,.13);
+  animation: promoGlowPulse 3.4s ease-in-out infinite;
+  isolation: isolate;
+}
+@keyframes promoGlowPulse {
+  0%,100% {
+    box-shadow:
+      0 0 0 2.5px #e8b923,
+      0 0 32px rgba(232,185,35,.50),
+      0 0 64px rgba(192,68,110,.22),
+      0 14px 52px rgba(100,30,50,.13);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2.5px #c0446e,
+      0 0 36px rgba(192,68,110,.55),
+      0 0 72px rgba(232,185,35,.28),
+      0 14px 52px rgba(100,30,50,.18);
+  }
+}
+
+/* Reveal animation override: start slightly scaled down */
+.promo-spotlight.reveal-target { opacity: 0; transform: translateY(32px) scale(.98); }
+.promo-spotlight.reveal-target.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+/* ── Shimmer sweep across the whole card ────────────────────────────── */
+.promo-bg-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(108deg, transparent 28%, rgba(255,255,255,.55) 50%, transparent 72%);
+  background-size: 300% 100%;
+  animation: promoShimmerSweep 5.5s ease-in-out infinite;
+}
+@keyframes promoShimmerSweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Floating festive particles ─────────────────────────────────────── */
+.promo-particles-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.promo-particle {
+  position: absolute;
+  bottom: -28px;
+  font-size: 15px;
+  opacity: 0;
+  animation: promoParticleDrift linear infinite;
+}
+@keyframes promoParticleDrift {
+  0%   { transform: translateY(0)      rotate(0deg);   opacity: 0;    }
+  8%   { opacity: .55; }
+  88%  { opacity: .40; }
+  100% { transform: translateY(-150vh) rotate(340deg); opacity: 0;    }
+}
+
+/* ── Corner ribbon badge ─────────────────────────────────────────────── */
+.promo-top-badge {
+  position: absolute;
+  top: 22px;
+  right: -38px;
+  z-index: 4;
+  width: 162px;
+  text-align: center;
+  background: linear-gradient(135deg, #e8b923, #c99a3f);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 6px 0;
+  transform: rotate(38deg);
+  box-shadow: 0 3px 14px rgba(0,0,0,.22);
+}
+
+/* ── Main grid layout ───────────────────────────────────────────────── */
+/*
+  Desktop (>720px): 2-column grid
+    col 1 (fixed ~420px): header on row 1, body on row 2
+    col 2 (flex 1):       photos span both rows
+  Mobile (≤720px): single column, CSS order moves photos between header & body
+*/
+.promo-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 420px) 1fr;
+  grid-template-rows: auto auto;
+  gap: 0 36px;
+  padding: 44px 40px 38px;
+  align-items: start;
+}
+
+.promo-info-header {
+  grid-column: 1;
+  grid-row: 1;
+  padding-bottom: 20px;
+}
+
+.promo-info-body {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.promo-media {
+  grid-column: 2;
+  grid-row: 1 / 3;       /* span both text rows */
+  align-self: stretch;
+}
+
+/* ── Info column shared ─────────────────────────────────────────────── */
+.promo-info-header,
+.promo-info-body { width: 100%; }
+
+/* Eyebrow with live pulsing dot */
+.promo-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #c0446e;
+  margin-bottom: 10px;
+}
+.promo-eyebrow::before {
+  content: '';
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e8b923;
+  box-shadow: 0 0 0 0 rgba(232,185,35,.7);
+  animation: promoLiveDot 1.5s ease-out infinite;
+}
+@keyframes promoLiveDot {
+  0%   { box-shadow: 0 0 0 0   rgba(232,185,35,.7); }
+  70%  { box-shadow: 0 0 0 8px rgba(232,185,35,0);  }
+  100% { box-shadow: 0 0 0 0   rgba(232,185,35,0);  }
+}
+
+.promo-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(26px, 5.5vw, 38px);
+  font-weight: 700;
+  color: #7a1040;
+  line-height: 1.18;
+  margin-bottom: 6px;
+}
+
+.promo-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: #a3455f;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.promo-desc {
+  font-size: 13.5px;
+  color: #6b3040;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+/* ── Price block ─────────────────────────────────────────────────────── */
+.promo-price-block {
+  background: rgba(255,255,255,.72);
+  border: 1.5px solid rgba(232,185,35,.48);
+  border-radius: 18px;
+  padding: 18px 20px 16px;
+  margin-bottom: 22px;
+  box-shadow: 0 2px 12px rgba(232,185,35,.12);
+}
+.promo-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.promo-price-original {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #b07b8c;
+  text-decoration: line-through;
+  text-decoration-color: rgba(176,123,140,.7);
+}
+.promo-price-now {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  color: #c0446e;
+  line-height: 1;
+  letter-spacing: -.01em;
+}
+.promo-price-only {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  color: #c0446e;
+  line-height: 1;
+}
+.promo-discount-pill {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  background: linear-gradient(135deg, #e8b923, #c99a3f);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 13px;
+  border-radius: 50px;
+  letter-spacing: .03em;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(200,154,63,.40);
+  animation: promoDiscountPop .5s cubic-bezier(.34,1.56,.64,1) both .3s;
+}
+.promo-discount-pill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+  transform: skewX(-18deg);
+  animation: promoCtaShimmer 2.6s ease-in-out infinite 1s;
+}
+@keyframes promoDiscountPop {
+  from { transform: scale(.4) rotate(-8deg); opacity: 0; }
+  to   { transform: scale(1)  rotate(0deg);  opacity: 1; }
+}
+.promo-discount-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b5a1a;
+  letter-spacing: .03em;
+  margin-bottom: 14px;
+}
+
+/* ── Urgency / slots bar ─────────────────────────────────────────────── */
+.promo-urgency { margin-top: 2px; }
+.promo-urgency-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c0446e;
+  margin-bottom: 8px;
+  letter-spacing: .01em;
+}
+.promo-urgency-bar-wrap { display: flex; align-items: center; gap: 10px; }
+.promo-urgency-bar {
+  flex: 1;
+  height: 7px;
+  background: #fce8ef;
+  border-radius: 50px;
+  overflow: hidden;
+}
+.promo-urgency-fill {
+  height: 100%;
+  border-radius: 50px;
+  background: linear-gradient(90deg, #e8b923, #c0446e);
+  transition: width 1.2s cubic-bezier(.25,.46,.45,.94);
+}
+.promo-urgency-slots {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a3455f;
+  white-space: nowrap;
+}
+
+/* ── What's inside chips ─────────────────────────────────────────────── */
+.promo-includes { margin-bottom: 24px; }
+.promo-includes-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 15.5px;
+  color: #7a1040;
+  margin-bottom: 10px;
+  letter-spacing: .01em;
+}
+.promo-includes-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.promo-include-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(232,185,35,.42);
+  border-radius: 50px;
+  padding: 5px 14px 5px 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #7a2040;
+  box-shadow: 0 1px 6px rgba(200,154,63,.10);
+}
+.promo-include-icon { font-size: 14px; }
+
+/* ── Countdown timer ─────────────────────────────────────────────────── */
+.promo-countdown {
+  margin-bottom: 26px;
+  background: linear-gradient(135deg, rgba(122,16,64,.07), rgba(232,185,35,.11));
+  border: 1px solid rgba(232,185,35,.30);
+  border-radius: 16px;
+  padding: 15px 18px 13px;
+}
+.promo-cd-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: #a3455f;
+  margin-bottom: 12px;
+}
+.promo-cd-timer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: nowrap;
+}
+.promo-cd-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 48px;
+  flex: 1;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(232,185,35,.24);
+  border-radius: 12px;
+  padding: 9px 6px 7px;
+  box-shadow: 0 2px 8px rgba(200,154,63,.08);
+}
+.promo-cd-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #7a1040;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+.promo-cd-unit {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #a3455f;
+}
+.promo-cd-sep {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #c0446e;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+  opacity: .7;
+}
+.promo-cd-expired {
+  font-size: 12px;
+  font-style: italic;
+  color: #a3455f;
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* ── CTA button ──────────────────────────────────────────────────────── */
+.promo-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 30px 15px 24px;
+  border-radius: 50px;
+  background: linear-gradient(128deg, #e8b923 0%, #c99a3f 38%, #c0446e 100%);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: .02em;
+  box-shadow: 0 6px 26px rgba(200,154,63,.50), 0 2px 10px rgba(192,68,110,.28);
+  position: relative;
+  overflow: hidden;
+  transition: transform .22s ease, box-shadow .22s ease;
+  white-space: nowrap;
+}
+.promo-cta-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%; width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+  transform: skewX(-18deg);
+  animation: promoCtaShimmer 2.8s ease-in-out infinite;
+}
+@keyframes promoCtaShimmer {
+  0%,100% { left: -80%; }
+  50%      { left: 130%; }
+}
+.promo-cta-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 34px rgba(200,154,63,.58), 0 4px 14px rgba(192,68,110,.36);
+}
+.promo-cta-icon { font-size: 18px; flex-shrink: 0; }
+
+/* ── Photos panel ────────────────────────────────────────────────────── */
+.promo-media { flex: 1; min-width: 0; }
+/* auto-fit collapses empty column tracks, so 1–3 photos always fill the
+   row without leaving a visible blank cell next to the last image.      */
+.promo-media .grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+/* ── Responsive — stack on mobile with photos sandwiched in the middle ── */
+@media (max-width: 720px) {
+  .promo-inner {
+    display: flex;
+    flex-direction: column;
+    padding: 38px 22px 28px;
+    gap: 0;
+  }
+  /* order: header → photos → body (price/CTA) */
+  .promo-info-header { order: 1; padding-bottom: 20px; }
+  .promo-media       { order: 2; margin-bottom: 24px; }
+  .promo-info-body   { order: 3; }
+
+  .promo-media .grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+}
+@media (max-width: 520px) {
+  .promo-inner { padding: 32px 16px 24px; }
+  .promo-title { font-size: 26px; }
+  .promo-price-now, .promo-price-only { font-size: 30px; }
+  .promo-price-original { font-size: 17px; }
+  .promo-cd-num  { font-size: 19px; }
+  .promo-cd-block { min-width: 36px; padding: 7px 4px 5px; }
+  .promo-cd-sep  { font-size: 18px; margin-bottom: 14px; }
+  .promo-top-badge { top: 18px; right: -40px; width: 152px; font-size: 9.5px; }
+  .promo-cta-btn { width: 100%; justify-content: center; }
+}
+
