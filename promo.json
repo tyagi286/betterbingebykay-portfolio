@@ -8,9 +8,9 @@
   "eyebrow": "🎀 Rakhi Special — Aug 2026",
   "title": "Rakhi Gift Hamper",
   "subtitle": "Celebrate the bond that lasts a lifetime",
-  "description": "A beautifully curated hamper of our finest brownies, adorned with a Rakhi and a heartfelt handwritten card — everything you need to make this Raksha Bandhan truly unforgettable.",
+  "description": "A beautifully curated hamper of our finest brownies, adorned with chocolates and a heartfelt handwritten card — everything you need to make this Raksha Bandhan truly unforgettable.",
 
-  "folderId": "PASTE_YOUR_RAKHI_FOLDER_ID_HERE",
+  "folderId": "1laBvzQ8Cq73YHdYF0zzW-riBR6XMjkQl",
 
   "price": "₹599",
 
@@ -25,10 +25,10 @@
   },
 
   "includes": [
-    { "icon": "🍫", "text": "9 Premium Brownies" },
-    { "icon": "🎀", "text": "Silk Rakhi" },
+    { "icon": "🍫", "text": "Signature brownies" },
+    { "icon": "🎀", "text": "8 Pieces assorted chocolates" },
     { "icon": "💌", "text": "Handwritten Card" },
-    { "icon": "🎁", "text": "Luxury Gift Box" }
+    { "icon": "🎁", "text": "Beautifully Packed Box" }
   ],
 
   "cta": {
