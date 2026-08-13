@@ -406,6 +406,7 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   padding: 40px 0 32px;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 .reviews-section-bg .section-head { padding: 0 24px; }
 .reviews-eyebrow {
@@ -420,6 +421,8 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   flex-direction: column;
   align-items: flex-start;
   gap: 18px;
+  width: 100%;
+  overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
   mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
 }
