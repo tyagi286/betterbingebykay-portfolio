@@ -1,0 +1,43 @@
+{
+  "_comment": "Set active to false (or remove this file) to hide the promo entirely. Change 'id' for every new campaign — it's used as a DOM key. Update 'ordersLeft' as orders come in. Set 'validUntil' to the last day of the offer (YYYY-MM-DD).",
+
+  "active": true,
+  "id": "rakhi-2026",
+
+  "badge": "Limited Edition",
+  "eyebrow": "🎀 Rakhi Special — Aug 2026",
+  "title": "Rakhi Gift Hamper",
+  "subtitle": "Celebrate the bond that lasts a lifetime",
+  "description": "A beautifully curated hamper of our finest brownies, adorned with a Rakhi and a heartfelt handwritten card — everything you need to make this Raksha Bandhan truly unforgettable.",
+
+  "folderId": "PASTE_YOUR_RAKHI_FOLDER_ID_HERE",
+
+  "price": "₹599",
+
+  "discount": {
+    "active": true,
+    "percent": 10,
+    "discountedPrice": "₹549",
+    "label": "Early Bird — First 10 Orders Only",
+    "totalSlots": 10,
+    "ordersLeft": 10,
+    "urgencyText": "🔥 Only {n} early-bird spots left at this price!"
+  },
+
+  "includes": [
+    { "icon": "🍫", "text": "9 Premium Brownies" },
+    { "icon": "🎀", "text": "Silk Rakhi" },
+    { "icon": "💌", "text": "Handwritten Card" },
+    { "icon": "🎁", "text": "Luxury Gift Box" }
+  ],
+
+  "cta": {
+    "icon": "🎀",
+    "text": "Claim Your Hamper",
+    "whatsappMessage": "Hi! I'd like to order the Rakhi Gift Hamper 🎀 (early bird discount)"
+  },
+
+  "validUntil": "2026-08-20",
+  "showCountdown": true
+}
+
