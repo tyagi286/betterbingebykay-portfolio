@@ -20,7 +20,7 @@
     "discountedPrice": "₹549",
     "label": "Early Bird — First 10 Orders Only",
     "totalSlots": 10,
-    "ordersLeft": 2,
+    "ordersLeft": 0,
     "urgencyText": "🔥 Only {n} early-bird spots left at this price!"
   },
 
@@ -34,10 +34,11 @@
   "cta": {
     "icon": "🎀",
     "text": "Claim Your Hamper",
-    "whatsappMessage": "Hi! I'd like to order the Rakhi Gift Hamper 🎀 (early bird discount)"
+    "whatsappMessage": "Hi! I'd like to order the Rakhi Gift Hamper 🎀 (early bird discount)",
+    "whatsappMessageSoldOut": "Hi! I'd like to order the Rakhi Gift Hamper 🎀 (I know the early-bird price is gone — that's okay!)"
   },
 
-  "validUntil": "2026-08-20",
+  "validUntil": "2026-08-26",
   "showCountdown": true
 }
 
