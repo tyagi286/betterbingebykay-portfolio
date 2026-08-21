@@ -482,6 +482,12 @@ async function loadPromo() {
   var ctaIcon = (promo.cta && promo.cta.icon) || '🎀';
 
   // ── Price block ─────────────────────────────────────────────────────────
+  // Once sold out, this deliberately falls through to the exact same plain
+  // price display as "no discount configured" — no strikethrough, no "sold
+  // out" badge, nothing referencing the discount ever existed. Showing a
+  // struck-through discounted price just invites people to push for it
+  // anyway ("but it says ₹549 right there") — so once it's gone, it's gone
+  // without a trace.
   var priceHtml;
   if (discountLive) {
     var taken       = totalSlots - ordersLeft;
@@ -504,15 +510,6 @@ async function loadPromo() {
             '<span class="promo-urgency-slots">' + taken + '/' + totalSlots + ' claimed</span>' +
           '</div>' +
         '</div>' +
-      '</div>';
-  } else if (soldOut) {
-    priceHtml =
-      '<div class="promo-price-block promo-price-block-soldout">' +
-        '<div class="promo-price-row">' +
-          '<span class="promo-price-original">' + escapeHtml(disc.discountedPrice) + '</span>' +
-          '<span class="promo-price-now">'      + escapeHtml(promo.price) + '</span>' +
-        '</div>' +
-        '<div class="promo-soldout-badge">🎉 All early-bird spots claimed — now at regular price</div>' +
       '</div>';
   } else {
     priceHtml = '<div class="promo-price-block"><div class="promo-price-only">' + escapeHtml(promo.price) + '</div></div>';
