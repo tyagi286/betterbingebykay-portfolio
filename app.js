@@ -121,12 +121,13 @@ async function fillTierPhotos(tier, tierIdx) {
 }
 
 // ── Render an un-priced-per-item gallery section (packaging / hampers) ──
-function renderGalleryShell(title, note, priceNote, groupId, testimonial) {
+function renderGalleryShell(title, note, priceNote, groupId, testimonial, anchorId) {
   const priceHtml = priceNote ? `<div class="gallery-note-row"><span class="gallery-price-badge">${escapeHtml(priceNote)}</span></div>` : '';
   const testimonialHtml = testimonial ? `<p class="testimonial">${escapeHtml(testimonial)}</p>` : '';
+  const idAttr = anchorId ? ` id="${escapeHtml(anchorId)}"` : '';
 
   return `
-  <div class="gallery-section section-block reveal-target" data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
+  <div class="gallery-section section-block reveal-target"${idAttr} data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
     <div class="section-head">
       <h2>${escapeHtml(title)}</h2>
       <div class="section-divider"><span>✦</span></div>
@@ -418,6 +419,258 @@ function renderDeliverySection(cfg) {
   </div>`;
 }
 
+// ── Promo Spotlight — loaded from promo.json ────────────────────────────
+// Deterministic particle positions [left%, duration-s, delay-s]
+var PROMO_PARTICLES = [
+  [8,  10.2, 2.1], [20, 8.5,  5.3], [35, 12.0, 1.0], [48, 9.3,  3.7],
+  [62, 11.5, 0.5], [74, 7.8,  4.2], [88, 13.1, 6.9], [15, 9.0,  7.5],
+  [42, 10.8, 2.8], [58, 8.2,  5.0], [78, 11.7, 0.2], [92, 9.6,  3.3]
+];
+
+async function loadPromo() {
+  var slot = document.getElementById('promoSlot');
+  if (!slot) return;
+
+  var promo;
+  try {
+    var res = await fetch('promo.json', { cache: 'no-store' });
+    if (!res.ok) return;
+    promo = await res.json();
+  } catch (e) { return; }
+
+  if (!promo || !promo.active) return;
+
+  // Hide automatically if the offer has expired
+  if (promo.validUntil) {
+    var expiry = new Date(promo.validUntil);
+    expiry.setHours(23, 59, 59, 999);
+    if (Date.now() > expiry.getTime()) return;
+  }
+
+  var cfg     = SITE_CONFIG;
+  var waRaw   = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
+  var wa      = /^\d{10,15}$/.test(waRaw) ? waRaw : '';
+  var ctaMsg  = (promo.cta && promo.cta.whatsappMessage) || '';
+  var ctaHref = wa
+    ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent(ctaMsg)
+    : (cfg.instagramHandle ? 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '') : '#');
+  var ctaIcon = (promo.cta && promo.cta.icon) || '🎀';
+
+  var disc        = promo.discount;
+  var hasDiscount = disc && disc.active;
+  var promoId     = promo.id || 'offer';
+  var photoGroupId = 'promo-' + promoId;
+  var cdId        = 'promoCD-' + promoId;
+
+  // ── Price block ─────────────────────────────────────────────────────────
+  var priceHtml;
+  if (hasDiscount) {
+    var ordersLeft  = typeof disc.ordersLeft === 'number' ? disc.ordersLeft : (disc.totalSlots || 10);
+    var totalSlots  = disc.totalSlots || 10;
+    var taken       = totalSlots - ordersLeft;
+    var barPct      = Math.min(100, Math.round((taken / totalSlots) * 100));
+    var urgencyText = (disc.urgencyText || '🔥 Only {n} spots left!').replace('{n}', ordersLeft);
+    priceHtml =
+      '<div class="promo-price-block">' +
+        '<div class="promo-price-row">' +
+          '<span class="promo-price-original">' + escapeHtml(promo.price) + '</span>' +
+          '<span class="promo-price-now">'      + escapeHtml(disc.discountedPrice) + '</span>' +
+          '<span class="promo-discount-pill">\u2011' + escapeHtml(String(disc.percent)) + '% OFF</span>' +
+        '</div>' +
+        '<div class="promo-discount-label">' + escapeHtml(disc.label || '') + '</div>' +
+        (ordersLeft > 0
+          ? '<div class="promo-urgency">' +
+              '<div class="promo-urgency-text">' + escapeHtml(urgencyText) + '</div>' +
+              '<div class="promo-urgency-bar-wrap">' +
+                '<div class="promo-urgency-bar">' +
+                  '<div class="promo-urgency-fill" style="width:' + barPct + '%"></div>' +
+                '</div>' +
+                '<span class="promo-urgency-slots">' + taken + '/' + totalSlots + ' claimed</span>' +
+              '</div>' +
+            '</div>'
+          : '') +
+      '</div>';
+  } else {
+    priceHtml = '<div class="promo-price-block"><div class="promo-price-only">' + escapeHtml(promo.price) + '</div></div>';
+  }
+
+  // ── What's inside ────────────────────────────────────────────────────────
+  var includesHtml = '';
+  if (promo.includes && promo.includes.length > 0) {
+    var chips = promo.includes.map(function (item) {
+      return '<span class="promo-include-chip">' +
+               '<span class="promo-include-icon">' + escapeHtml(item.icon || '') + '</span>' +
+               escapeHtml(item.text || '') +
+             '</span>';
+    }).join('');
+    includesHtml =
+      '<div class="promo-includes">' +
+        '<div class="promo-includes-label">What\'s Inside</div>' +
+        '<div class="promo-includes-chips">' + chips + '</div>' +
+      '</div>';
+  }
+
+  // ── Countdown ────────────────────────────────────────────────────────────
+  var countdownHtml = '';
+  if (promo.showCountdown && promo.validUntil) {
+    countdownHtml =
+      '<div class="promo-countdown" id="' + cdId + '">' +
+        '<div class="promo-cd-label">\u23f3 Offer ends in</div>' +
+        '<div class="promo-cd-timer">' +
+          '<div class="promo-cd-block"><span class="promo-cd-num" id="' + cdId + '-d">00</span><span class="promo-cd-unit">days</span></div>' +
+          '<span class="promo-cd-sep">:</span>' +
+          '<div class="promo-cd-block"><span class="promo-cd-num" id="' + cdId + '-h">00</span><span class="promo-cd-unit">hrs</span></div>' +
+          '<span class="promo-cd-sep">:</span>' +
+          '<div class="promo-cd-block"><span class="promo-cd-num" id="' + cdId + '-m">00</span><span class="promo-cd-unit">min</span></div>' +
+          '<span class="promo-cd-sep">:</span>' +
+          '<div class="promo-cd-block"><span class="promo-cd-num" id="' + cdId + '-s">00</span><span class="promo-cd-unit">sec</span></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // ── Floating particles ────────────────────────────────────────────────────
+  var particleEmojis = ['\u2728', '\uD83C\uDF80', '\uD83C\uDF38', '\uD83D\uDC9B', '\uD83C\uDF1F', '\uD83E\uDDE1'];
+  var particlesHtml = PROMO_PARTICLES.map(function (pos, i) {
+    return '<span class="promo-particle" style="left:' + pos[0] + '%;animation-duration:' + pos[1] + 's;animation-delay:-' + pos[2] + 's;">' +
+             particleEmojis[i % particleEmojis.length] +
+           '</span>';
+  }).join('');
+
+  // ── Assemble full HTML ────────────────────────────────────────────────────
+  var displayPrice = hasDiscount ? escapeHtml(disc.discountedPrice) : escapeHtml(promo.price);
+
+  slot.innerHTML =
+    '<div class="promo-spotlight reveal-target" id="promoSpotlight"' +
+        ' data-group-label="' + photoGroupId + '"' +
+        ' data-name="'  + escapeHtml(promo.title) + '"' +
+        ' data-price="' + displayPrice + '">' +
+
+      '<div class="promo-bg-shimmer" aria-hidden="true"></div>' +
+      '<div class="promo-particles-wrap" aria-hidden="true">' + particlesHtml + '</div>' +
+
+      '<div class="promo-top-badge">' + escapeHtml(promo.badge || 'Special Offer') + '</div>' +
+
+      '<div class="promo-inner">' +
+        /* ── header: eyebrow / title / desc — always visible at top on mobile ── */
+        '<div class="promo-info-header">' +
+          '<div class="promo-eyebrow">' + escapeHtml(promo.eyebrow || '') + '</div>' +
+          '<h2 class="promo-title">'   + escapeHtml(promo.title) + '</h2>' +
+          (promo.subtitle    ? '<p class="promo-subtitle">' + escapeHtml(promo.subtitle)    + '</p>' : '') +
+          (promo.description ? '<p class="promo-desc">'     + escapeHtml(promo.description) + '</p>' : '') +
+        '</div>' +
+
+        /* ── photos: right column on desktop, between header & body on mobile ── */
+        '<div class="promo-media" id="promo-photos-' + escapeHtml(promoId) + '">' +
+          skeletonGridHtml(3) +
+        '</div>' +
+
+        /* ── body: price / includes / countdown / CTA — below photos on mobile ── */
+        '<div class="promo-info-body">' +
+          priceHtml +
+          includesHtml +
+          countdownHtml +
+          '<a href="' + ctaHref + '" class="promo-cta-btn" target="_blank" rel="noopener"' +
+             ' aria-label="' + escapeHtml((promo.cta && promo.cta.text) || 'Order Now') + '">' +
+            '<span class="promo-cta-icon" aria-hidden="true">' + escapeHtml(ctaIcon) + '</span>' +
+            '<span>' + escapeHtml((promo.cta && promo.cta.text) || 'Order Now') + '</span>' +
+          '</a>' +
+        '</div>' +
+      '</div>' +
+
+    '</div>';
+
+  // Start countdown ticker
+  if (promo.showCountdown && promo.validUntil) {
+    startPromoCountdown(promo.validUntil, cdId);
+  }
+
+  // Load photos from Drive (skip if folder ID is a placeholder)
+  var fid = (promo.folderId || '').trim();
+  if (fid && fid.indexOf('PASTE_') !== 0) {
+    var urls    = await getThumbUrls(fid);
+    var photoEl = document.getElementById('promo-photos-' + promoId);
+    if (photoEl) photoEl.innerHTML = photoGridHtml(urls, photoGroupId, promo.title);
+    wireUpNewPhotos(photoGroupId);
+  }
+
+  // Scroll-reveal
+  var revealEl = slot.querySelector('.reveal-target');
+  if (revealEl) {
+    if ('IntersectionObserver' in window) {
+      var promoIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add('visible'); promoIO.unobserve(en.target); }
+        });
+      }, { threshold: 0.05 });
+      promoIO.observe(revealEl);
+    } else {
+      revealEl.classList.add('visible');
+    }
+  }
+}
+
+// Live countdown for the promo offer
+function startPromoCountdown(validUntil, cdId) {
+  var expiry = new Date(validUntil);
+  expiry.setHours(23, 59, 59, 999);
+
+  function pad2(n) { return String(Math.max(0, n)).padStart(2, '0'); }
+
+  function tick() {
+    var diff = expiry.getTime() - Date.now();
+    if (diff <= 0) {
+      var el = document.getElementById(cdId);
+      if (el) el.innerHTML = '<div class="promo-cd-expired">This offer has ended.</div>';
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000)  / 60000);
+    var s = Math.floor((diff % 60000)    / 1000);
+    var dEl = document.getElementById(cdId + '-d');
+    var hEl = document.getElementById(cdId + '-h');
+    var mEl = document.getElementById(cdId + '-m');
+    var sEl = document.getElementById(cdId + '-s');
+    if (dEl) dEl.textContent = pad2(d);
+    if (hEl) hEl.textContent = pad2(h);
+    if (mEl) mEl.textContent = pad2(m);
+    if (sEl) sEl.textContent = pad2(s);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── Hamper teaser (shown near Packaging, links down to the full Hampers
+// section which now sits later on the page) ──────────────────────────────
+function renderHamperTeaserShell(cfg) {
+  const teaser = cfg.hamperTeaser;
+  if (!teaser || !teaser.enabled) return '';
+
+  return `
+  <a href="#hamper-section" class="hamper-teaser reveal-target" id="hamperTeaserCard">
+    <div class="hamper-teaser-photo" id="hamperTeaserPhoto"><div class="skeleton-item"></div></div>
+    <div class="hamper-teaser-text">
+      <div class="hamper-teaser-msg">${escapeHtml(teaser.text)}</div>
+      <div class="hamper-teaser-link">${escapeHtml(teaser.linkText || 'See Hampers')} ↓</div>
+    </div>
+  </a>`;
+}
+
+async function fillHamperTeaserPhoto(cfg) {
+  const teaser = cfg.hamperTeaser;
+  if (!teaser || !teaser.enabled) return;
+  const el = document.getElementById('hamperTeaserPhoto');
+  if (!el) return;
+
+  const urls = await getThumbUrls(cfg.hamper.folderId);
+  if (!urls || urls.length === 0) { el.remove(); return; } // no photo yet — teaser still works as a text link
+
+  const first = urls[0];
+  el.innerHTML = '<img src="' + first.thumbA + '" alt="Hamper preview" loading="lazy" ' +
+    'onerror="this.onerror=null;this.src=\'' + first.thumbB + '\';">';
+}
+
 // ── Build the whole page ─────────────────────────────────────────────────
 async function buildPage() {
   const cfg = SITE_CONFIG;
@@ -483,11 +736,13 @@ async function buildPage() {
   document.getElementById('packagingSlot').innerHTML =
     renderGalleryShell(cfg.packaging.title, cfg.packaging.note, null, 'packaging', cfg.packaging.testimonial);
 
+  document.getElementById('hamperTeaserSlot').innerHTML = renderHamperTeaserShell(cfg);
+
   document.getElementById('tierSlot').innerHTML =
     cfg.tiers.map(function (tier, i) { return renderTierShell(tier, i); }).join('\n');
 
   document.getElementById('hamperSlot').innerHTML =
-    renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null);
+    renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null, 'hamper-section');
 
   document.getElementById('addOnsSlot').innerHTML = renderAddOnsSection(cfg);
 
@@ -496,9 +751,11 @@ async function buildPage() {
   initPageBehaviors();
 
   // Fire off each folder's fetch independently
+  loadPromo();
   fillGalleryPhotos(cfg.packaging.folderId, 'packaging', cfg.packaging.title);
   cfg.tiers.forEach(function (tier, i) { fillTierPhotos(tier, i); });
   fillGalleryPhotos(cfg.hamper.folderId, 'hamper', cfg.hamper.title);
+  fillHamperTeaserPhoto(cfg);
   loadReviews();
 }
 
