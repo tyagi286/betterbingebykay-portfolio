@@ -1,5 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; scroll-behavior: smooth; }
+#hamper-section { scroll-margin-top: 20px; }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #fff0f4; }
@@ -990,4 +991,36 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   .promo-cd-sep  { font-size: 18px; margin-bottom: 14px; }
   .promo-top-badge { top: 18px; right: -40px; width: 152px; font-size: 9.5px; }
   .promo-cta-btn { width: 100%; justify-content: center; }
+}
+
+
+
+/* ── Hamper teaser card (near Packaging, links down to the full section) ── */
+.hamper-teaser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe4ee 100%);
+  border: 1.5px solid #f9c8d8;
+  border-radius: 20px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: box-shadow .2s ease, transform .2s ease;
+  box-shadow: 0 3px 14px rgba(200,70,115,.10);
+}
+.hamper-teaser:hover {
+  box-shadow: 0 8px 26px rgba(200,70,115,.18);
+  transform: translateY(-2px);
+}
+.hamper-teaser-photo {
+  width: 64px; height: 64px; border-radius: 14px; overflow: hidden;
+  flex-shrink: 0; background: #ffe8f0;
+}
+.hamper-teaser-photo img,
+.hamper-teaser-photo .skeleton-item { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 14px; }
+.hamper-teaser-text { flex: 1; min-width: 0; }
+.hamper-teaser-msg { font-size: 13.5px; color: #7a1040; font-weight: 500; line-height: 1.4; }
+.hamper-teaser-link {
+  margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-weight: 700;
+  font-size: 15px; color: #c0446e; letter-spacing: .01em;
 }

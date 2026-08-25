@@ -69,23 +69,13 @@ const SITE_CONFIG = {
 
   tiers: [
     {
-      label: 'The Personalised',
-      price: '₹749',
-      emoji: '🎨',
-      pieces: '9 pieces',
-      weight: '~500g',
-      note: 'Your photo, doodle, or name printed on the waffer',
-      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP',
-      featured: true // shows the "Most Loved" ribbon — set on at most one tier
-    },
-    {
-      label: 'The Signature',
-      price: '₹599',
-      emoji: '✨',
-      pieces: '9 pieces',
-      weight: '~500g',
-      note: 'Plain waffer topper included',
-      folderId: '1wYJ65OOsnuK3RKQ-_HhJAyKJPUPV0pBr'
+      label: 'The Mini',
+      price: '₹249',
+      emoji: '🍫',
+      pieces: '4 pieces',
+      weight: '~220g',
+      note: 'Classic flavours, no topper',
+      folderId: '1nPWuglUqnhN3zTDXNiSuy4FNlUvubmN1'
     },
     {
       label: 'The Classic',
@@ -97,23 +87,44 @@ const SITE_CONFIG = {
       folderId: '1AkUOwts6ixUFXlH4euiauFS3AjXityx1'
     },
     {
-      label: 'The Mini',
-      price: '₹249',
-      emoji: '🍫',
-      pieces: '4 pieces',
-      weight: '~220g',
-      note: 'Classic flavours, no topper',
-      folderId: '1nPWuglUqnhN3zTDXNiSuy4FNlUvubmN1'
+      label: 'The Signature',
+      price: '₹599',
+      emoji: '✨',
+      pieces: '9 pieces',
+      weight: '~500g',
+      note: 'Plain waffer topper included',
+      folderId: '1wYJ65OOsnuK3RKQ-_HhJAyKJPUPV0pBr'
+    },
+    {
+      label: 'The Personalised',
+      price: '₹749',
+      emoji: '🎨',
+      pieces: '9 pieces',
+      weight: '~500g',
+      note: 'Your photo, doodle, or name printed on the waffer',
+      folderId: '1zioCF-8bnaghDsIjvYdNDYjn41E3PepP',
+      featured: true // shows the "Most Loved" ribbon — set on at most one tier
     }
   ],
 
   // A separate, un-priced-per-piece section — hampers are build-your-own,
   // so this shows examples rather than a fixed grid of exact prices.
+  // Now positioned last among the product sections (after the tiers).
   hamper: {
     title: 'Custom Hampers',
     note: 'A cake, beautifully paired — tell us the occasion and we\'ll build it around it.',
     priceNote: 'Starting from ₹999 · fully customisable',
     folderId: '1E-bibNhzE11afWh3GixO77fcOXWFa7wE'
+  },
+
+  // A small teaser card shown right after Packaging — keeps Hampers
+  // visible early on the page even though the full section now sits at
+  // the bottom. Pulls its photo from the same hamper.folderId above (no
+  // separate folder needed) and links down to the full section.
+  hamperTeaser: {
+    enabled: true,
+    text: 'Also planning something special? Check out our fully customisable Hampers.',
+    linkText: 'See Hampers'
   },
 
   // Shown as a lightweight chip section at the very end of the product

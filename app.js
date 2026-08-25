@@ -121,12 +121,13 @@ async function fillTierPhotos(tier, tierIdx) {
 }
 
 // ── Render an un-priced-per-item gallery section (packaging / hampers) ──
-function renderGalleryShell(title, note, priceNote, groupId, testimonial) {
+function renderGalleryShell(title, note, priceNote, groupId, testimonial, anchorId) {
   const priceHtml = priceNote ? `<div class="gallery-note-row"><span class="gallery-price-badge">${escapeHtml(priceNote)}</span></div>` : '';
   const testimonialHtml = testimonial ? `<p class="testimonial">${escapeHtml(testimonial)}</p>` : '';
+  const idAttr = anchorId ? ` id="${escapeHtml(anchorId)}"` : '';
 
   return `
-  <div class="gallery-section section-block reveal-target" data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
+  <div class="gallery-section section-block reveal-target"${idAttr} data-group-label="${groupId}" data-name="${escapeHtml(title)}" data-price="">
     <div class="section-head">
       <h2>${escapeHtml(title)}</h2>
       <div class="section-divider"><span>✦</span></div>
@@ -446,50 +447,26 @@ async function loadPromo() {
     if (Date.now() > expiry.getTime()) return;
   }
 
-  var cfg         = SITE_CONFIG;
+  var cfg     = SITE_CONFIG;
+  var waRaw   = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
+  var wa      = /^\d{10,15}$/.test(waRaw) ? waRaw : '';
+  var ctaMsg  = (promo.cta && promo.cta.whatsappMessage) || '';
+  var ctaHref = wa
+    ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent(ctaMsg)
+    : (cfg.instagramHandle ? 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '') : '#');
+  var ctaIcon = (promo.cta && promo.cta.icon) || '🎀';
+
   var disc        = promo.discount;
   var hasDiscount = disc && disc.active;
   var promoId     = promo.id || 'offer';
   var photoGroupId = 'promo-' + promoId;
   var cdId        = 'promoCD-' + promoId;
 
-  // ── Is the discount actually still available? ────────────────────────
-  // ordersLeft is the single source of truth: hitting 0 should revert
-  // the price, badges, AND the CTA message — not just hide the progress
-  // bar (that was the bug: the discounted price and the "early bird"
-  // WhatsApp message kept showing even after slots ran out).
-  var totalSlots = hasDiscount ? (disc.totalSlots || 10) : 0;
-  var ordersLeft = hasDiscount
-    ? (typeof disc.ordersLeft === 'number' ? disc.ordersLeft : totalSlots)
-    : 0;
-  var soldOut = hasDiscount && ordersLeft <= 0;
-  var discountLive = hasDiscount && !soldOut;
-
-  var waRaw   = (cfg.orderCta && cfg.orderCta.whatsappNumber || '').trim();
-  var wa      = /^\d{10,15}$/.test(waRaw) ? waRaw : '';
-  var baseCtaMsg = (promo.cta && promo.cta.whatsappMessage) || '';
-  // Once sold out, prefer an explicit whatsappMessageSoldOut if the JSON
-  // provides one; otherwise auto-strip any "(...early bird / discount...)"
-  // parenthetical from the original message so it doesn't keep promising
-  // a discount that's gone.
-  var ctaMsg = soldOut
-    ? ((promo.cta && promo.cta.whatsappMessageSoldOut) ||
-       baseCtaMsg.replace(/\s*\([^)]*(early[\s-]?bird|discount)[^)]*\)/i, '').trim())
-    : baseCtaMsg;
-  var ctaHref = wa
-    ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent(ctaMsg)
-    : (cfg.instagramHandle ? 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '') : '#');
-  var ctaIcon = (promo.cta && promo.cta.icon) || '🎀';
-
   // ── Price block ─────────────────────────────────────────────────────────
-  // Once sold out, this deliberately falls through to the exact same plain
-  // price display as "no discount configured" — no strikethrough, no "sold
-  // out" badge, nothing referencing the discount ever existed. Showing a
-  // struck-through discounted price just invites people to push for it
-  // anyway ("but it says ₹549 right there") — so once it's gone, it's gone
-  // without a trace.
   var priceHtml;
-  if (discountLive) {
+  if (hasDiscount) {
+    var ordersLeft  = typeof disc.ordersLeft === 'number' ? disc.ordersLeft : (disc.totalSlots || 10);
+    var totalSlots  = disc.totalSlots || 10;
     var taken       = totalSlots - ordersLeft;
     var barPct      = Math.min(100, Math.round((taken / totalSlots) * 100));
     var urgencyText = (disc.urgencyText || '🔥 Only {n} spots left!').replace('{n}', ordersLeft);
@@ -501,15 +478,17 @@ async function loadPromo() {
           '<span class="promo-discount-pill">\u2011' + escapeHtml(String(disc.percent)) + '% OFF</span>' +
         '</div>' +
         '<div class="promo-discount-label">' + escapeHtml(disc.label || '') + '</div>' +
-        '<div class="promo-urgency">' +
-          '<div class="promo-urgency-text">' + escapeHtml(urgencyText) + '</div>' +
-          '<div class="promo-urgency-bar-wrap">' +
-            '<div class="promo-urgency-bar">' +
-              '<div class="promo-urgency-fill" style="width:' + barPct + '%"></div>' +
-            '</div>' +
-            '<span class="promo-urgency-slots">' + taken + '/' + totalSlots + ' claimed</span>' +
-          '</div>' +
-        '</div>' +
+        (ordersLeft > 0
+          ? '<div class="promo-urgency">' +
+              '<div class="promo-urgency-text">' + escapeHtml(urgencyText) + '</div>' +
+              '<div class="promo-urgency-bar-wrap">' +
+                '<div class="promo-urgency-bar">' +
+                  '<div class="promo-urgency-fill" style="width:' + barPct + '%"></div>' +
+                '</div>' +
+                '<span class="promo-urgency-slots">' + taken + '/' + totalSlots + ' claimed</span>' +
+              '</div>' +
+            '</div>'
+          : '') +
       '</div>';
   } else {
     priceHtml = '<div class="promo-price-block"><div class="promo-price-only">' + escapeHtml(promo.price) + '</div></div>';
@@ -558,7 +537,7 @@ async function loadPromo() {
   }).join('');
 
   // ── Assemble full HTML ────────────────────────────────────────────────────
-  var displayPrice = discountLive ? escapeHtml(disc.discountedPrice) : escapeHtml(promo.price);
+  var displayPrice = hasDiscount ? escapeHtml(disc.discountedPrice) : escapeHtml(promo.price);
 
   slot.innerHTML =
     '<div class="promo-spotlight reveal-target" id="promoSpotlight"' +
@@ -662,6 +641,36 @@ function startPromoCountdown(validUntil, cdId) {
   setInterval(tick, 1000);
 }
 
+// ── Hamper teaser (shown near Packaging, links down to the full Hampers
+// section which now sits later on the page) ──────────────────────────────
+function renderHamperTeaserShell(cfg) {
+  const teaser = cfg.hamperTeaser;
+  if (!teaser || !teaser.enabled) return '';
+
+  return `
+  <a href="#hamper-section" class="hamper-teaser reveal-target" id="hamperTeaserCard">
+    <div class="hamper-teaser-photo" id="hamperTeaserPhoto"><div class="skeleton-item"></div></div>
+    <div class="hamper-teaser-text">
+      <div class="hamper-teaser-msg">${escapeHtml(teaser.text)}</div>
+      <div class="hamper-teaser-link">${escapeHtml(teaser.linkText || 'See Hampers')} ↓</div>
+    </div>
+  </a>`;
+}
+
+async function fillHamperTeaserPhoto(cfg) {
+  const teaser = cfg.hamperTeaser;
+  if (!teaser || !teaser.enabled) return;
+  const el = document.getElementById('hamperTeaserPhoto');
+  if (!el) return;
+
+  const urls = await getThumbUrls(cfg.hamper.folderId);
+  if (!urls || urls.length === 0) { el.remove(); return; } // no photo yet — teaser still works as a text link
+
+  const first = urls[0];
+  el.innerHTML = '<img src="' + first.thumbA + '" alt="Hamper preview" loading="lazy" ' +
+    'onerror="this.onerror=null;this.src=\'' + first.thumbB + '\';">';
+}
+
 // ── Build the whole page ─────────────────────────────────────────────────
 async function buildPage() {
   const cfg = SITE_CONFIG;
@@ -727,11 +736,13 @@ async function buildPage() {
   document.getElementById('packagingSlot').innerHTML =
     renderGalleryShell(cfg.packaging.title, cfg.packaging.note, null, 'packaging', cfg.packaging.testimonial);
 
+  document.getElementById('hamperTeaserSlot').innerHTML = renderHamperTeaserShell(cfg);
+
   document.getElementById('tierSlot').innerHTML =
     cfg.tiers.map(function (tier, i) { return renderTierShell(tier, i); }).join('\n');
 
   document.getElementById('hamperSlot').innerHTML =
-    renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null);
+    renderGalleryShell(cfg.hamper.title, cfg.hamper.note, cfg.hamper.priceNote, 'hamper', null, 'hamper-section');
 
   document.getElementById('addOnsSlot').innerHTML = renderAddOnsSection(cfg);
 
@@ -744,6 +755,7 @@ async function buildPage() {
   fillGalleryPhotos(cfg.packaging.folderId, 'packaging', cfg.packaging.title);
   cfg.tiers.forEach(function (tier, i) { fillTierPhotos(tier, i); });
   fillGalleryPhotos(cfg.hamper.folderId, 'hamper', cfg.hamper.title);
+  fillHamperTeaserPhoto(cfg);
   loadReviews();
 }
 
