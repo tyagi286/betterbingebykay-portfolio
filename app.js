@@ -6,6 +6,27 @@
  */
 
 // ── Utility ───────────────────────────────────────────────────────────
+function instagramProfileUrl(cfg) {
+  return cfg.instagramHandle ? 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '') : '';
+}
+
+// Loads the Meta (Facebook/Instagram) Pixel only if a real ID is configured,
+// so sites that leave metaPixelId blank don't pay for an unused script fetch.
+function initMetaPixel(cfg) {
+  var pixelId = (cfg.metaPixelId || '').trim();
+  if (!pixelId) return;
+
+  (function (f, b, e, v, n, t, s) {
+    if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+    if (!f._fbq) f._fbq = n; n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+    t = b.createElement(e); t.async = true; t.src = v;
+    s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', pixelId);
+  fbq('track', 'PageView');
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g,  '&amp;')
@@ -313,8 +334,23 @@ async function loadReviews() {
     const lap1 = buildLap(reviews, function (i) { return i; });
     const lap2 = buildLap(revList, function (i) { return reviews.length - 1 - i; });
 
+    // The scrolling rows repeat each review several times over (to fill the
+    // lap width, then again for the seamless loop) — great visually, but a
+    // screen reader would otherwise read the same review 3-4x. The marquee
+    // itself is marked aria-hidden, and this plain list carries the real
+    // content instead (one entry per review, no duplicates).
+    const srListHtml =
+      '<ul class="sr-only">' +
+        reviews.map(function (r) {
+          return '<li>' + escapeHtml(r.name || 'Happy Customer') + ', ' +
+            Math.max(0, Math.min(5, Math.round(r.rating || 5))) + ' out of 5 stars: ' +
+            escapeHtml(r.text || '') + '</li>';
+        }).join('') +
+      '</ul>';
+
     const bodyHtml =
-      '<div class="reviews-dual-wrap" id="reviewsDualWrap">' +
+      srListHtml +
+      '<div class="reviews-dual-wrap" id="reviewsDualWrap" aria-hidden="true">' +
         '<div class="reviews-track-row"         id="rvTrack1">' + lap1 + lap1 + '</div>' +
         '<div class="reviews-track-row reverse" id="rvTrack2">' + lap2 + lap2 + '</div>' +
       '</div>';
@@ -453,7 +489,7 @@ async function loadPromo() {
   var ctaMsg  = (promo.cta && promo.cta.whatsappMessage) || '';
   var ctaHref = wa
     ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent(ctaMsg)
-    : (cfg.instagramHandle ? 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '') : '#');
+    : (instagramProfileUrl(cfg) || '#');
   var ctaIcon = (promo.cta && promo.cta.icon) || '🎀';
 
   var disc        = promo.discount;
@@ -677,6 +713,8 @@ async function buildPage() {
 
   document.title = cfg.displayName;
 
+  initMetaPixel(cfg);
+
   // Logo — just an <img src>, no base64 needed outside Apps Script
   // (handcrafted seal badge intentionally removed per latest design pass)
   const logoWrap = document.getElementById('logoWrap');
@@ -695,6 +733,7 @@ async function buildPage() {
   const handleBadge = document.getElementById('handleBadge');
   if (cfg.instagramHandle) {
     handleBadge.textContent = cfg.instagramHandle;
+    handleBadge.href = instagramProfileUrl(cfg);
   } else {
     handleBadge.style.display = 'none';
   }
@@ -720,8 +759,8 @@ async function buildPage() {
     cta.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(cfg.orderCta.orderMessage || '');
     cta.setAttribute('aria-label', 'Order on WhatsApp');
     ctaLabel.textContent = 'Click to Order';
-  } else if (cfg.instagramHandle) {
-    cta.href = 'https://instagram.com/' + cfg.instagramHandle.replace(/^@/, '');
+  } else if (instagramProfileUrl(cfg)) {
+    cta.href = instagramProfileUrl(cfg);
     cta.setAttribute('aria-label', 'Order on Instagram');
     ctaLabel.textContent = 'DM to Order';
   } else {

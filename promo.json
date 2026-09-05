@@ -1,7 +1,7 @@
 {
-  "_comment": "Set active to false (or remove this file) to hide the promo entirely. Change 'id' for every new campaign — it's used as a DOM key. Update 'ordersLeft' as orders come in. Set 'validUntil' to the last day of the offer (YYYY-MM-DD).",
+  "_comment": "Set active to false (or remove this file) to hide the promo entirely. Change 'id' for every new campaign — it's used as a DOM key. Update 'ordersLeft' as orders come in. Set 'validUntil' to the last day of the offer (YYYY-MM-DD). This Rakhi campaign has ended (validUntil passed) — set active back to true and update the fields above for the next campaign.",
 
-  "active": true,
+  "active": false,
   "id": "rakhi-2026",
 
   "badge": "Limited Edition",
