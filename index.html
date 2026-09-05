@@ -66,6 +66,18 @@
 
   <!-- ░░ HERO ░░ -->
   <div class="hero">
+    <!-- Background unboxing video. The poster (also set as the .hero
+         CSS background below) paints instantly; the video enhances with
+         motion once it's downloaded, and is skipped entirely under
+         prefers-reduced-motion. WebM listed first since it's a little
+         smaller — browsers that don't support it fall back to the MP4. -->
+    <video class="hero-video" autoplay muted loop playsinline preload="auto"
+           poster="assets/hero-unboxing-poster.jpg"
+           disablepictureinpicture disableremoteplayback aria-hidden="true">
+      <source src="assets/hero-unboxing.webm" type="video/webm">
+      <source src="assets/hero-unboxing.mp4" type="video/mp4">
+    </video>
+    <div class="hero-video-overlay"></div>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
