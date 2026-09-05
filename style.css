@@ -443,6 +443,12 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   animation-duration: 40s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  /* iOS Safari sometimes fails to paint a second, independently-animated
+     transform layer inside a masked overflow:hidden container — these
+     hints force it onto its own GPU layer so it actually renders. */
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .reviews-track-row.reverse { animation-name: reviewsScrollRight; }
 @keyframes reviewsScrollLeft  { from { transform: translateX(0); }     to { transform: translateX(-50%); } }
@@ -450,6 +456,14 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
 @media (prefers-reduced-motion: reduce) {
   .reviews-track-row { animation: none; }
   .reviews-dual-wrap { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+}
+
+/* Guaranteed fallback for iOS Safari/WebKit (all browsers on iOS use this
+   engine): if the compositing hints above still don't get the second row
+   painted on a given iOS version, fall back to a single scrolling row
+   instead of leaving a blank gap where it would have been. */
+@supports (-webkit-touch-callout: none) {
+  .reviews-track-row.reverse { display: none; }
 }
 
 .review-card {
