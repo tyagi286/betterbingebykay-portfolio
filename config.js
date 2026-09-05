@@ -22,6 +22,12 @@ const SITE_CONFIG = {
   // Paste your Google Drive API key here (README.md → step 2)
   driveApiKey: 'AIzaSyAt2uKgBxn7N0AYAEsFjiBRaUbOMeYFb8E',
 
+  // Optional: Meta (Facebook/Instagram) Pixel ID — lets you build retargeting
+  // audiences and measure Instagram ad conversions for people who visit this
+  // site. Find/create one at business.facebook.com → Events Manager →
+  // Connect Data Sources → Web. Leave '' to skip loading it entirely.
+  metaPixelId: '',
+
   // Paste your logo's Drive file ID here, or leave '' for no logo
   logoFileId: '1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU',
 

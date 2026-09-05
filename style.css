@@ -51,7 +51,15 @@ body {
 .handle-badge {
   display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 500; color: #8b2a4a;
   background: rgba(255,255,255,.65); border: 1px solid rgba(200,70,115,.25); border-radius: 50px;
-  padding: 4px 14px; letter-spacing: 0.02em;
+  padding: 4px 14px; letter-spacing: 0.02em; text-decoration: none; transition: background .2s ease;
+}
+.handle-badge:hover { background: rgba(255,255,255,.9); }
+
+/* Visually hidden but still readable by screen readers — used for content
+   that's otherwise only presented inside a decorative, duplicated marquee. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 .hero-wave { position: absolute; bottom: -1px; left: 0; width: 100%; line-height: 0; }
 .hero-wave svg { display: block; width: 100%; }
@@ -435,6 +443,12 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
   animation-duration: 40s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  /* iOS Safari sometimes fails to paint a second, independently-animated
+     transform layer inside a masked overflow:hidden container — these
+     hints force it onto its own GPU layer so it actually renders. */
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .reviews-track-row.reverse { animation-name: reviewsScrollRight; }
 @keyframes reviewsScrollLeft  { from { transform: translateX(0); }     to { transform: translateX(-50%); } }
@@ -442,6 +456,14 @@ footer .brand { font-family:'Cormorant Garamond',serif; font-size:16px; font-wei
 @media (prefers-reduced-motion: reduce) {
   .reviews-track-row { animation: none; }
   .reviews-dual-wrap { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+}
+
+/* Guaranteed fallback for iOS Safari/WebKit (all browsers on iOS use this
+   engine): if the compositing hints above still don't get the second row
+   painted on a given iOS version, fall back to a single scrolling row
+   instead of leaving a blank gap where it would have been. */
+@supports (-webkit-touch-callout: none) {
+  .reviews-track-row.reverse { display: none; }
 }
 
 .review-card {

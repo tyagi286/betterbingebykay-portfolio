@@ -14,6 +14,11 @@
   </script>
   <title>Better Binge by Kay</title>
 
+  <!-- Standard search-engine snippet (separate from the OG/Twitter cards
+       below — Google reads this one for its own results, not og:description). -->
+  <meta name="description" content="Handcrafted eggless brownie boxes & custom hampers, made fresh to order — no maida. Delivering across Chandigarh, Mohali, Panchkula, Zirakpur & Derabassi. Order on WhatsApp or Instagram.">
+  <link rel="canonical" href="https://betterbingebykay.com/">
+
   <!-- Favicon set (generated from the logo via realfavicongenerator.net) -->
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -26,7 +31,7 @@
        don't run JS), so if you change displayName, tagline, logo, or the
        site URL in js/config.js, update the matching lines below too. -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://tyagi286.github.io/betterbingebykay-portfolio/">
+  <meta property="og:url" content="https://betterbingebykay.com/">
   <meta property="og:title" content="Better Binge by Kay">
   <meta property="og:description" content="Handcrafted eggless brownie boxes & custom hampers — handcrafted with love.">
   <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU=w1200-h630">
@@ -34,6 +39,23 @@
   <meta name="twitter:title" content="Better Binge by Kay">
   <meta name="twitter:description" content="Handcrafted eggless brownie boxes & custom hampers — handcrafted with love.">
   <meta name="twitter:image" content="https://lh3.googleusercontent.com/d/1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU=w1200-h630">
+
+  <!-- Structured data for local search (Google rich results). Static for
+       the same reason as the OG tags above — keep in sync with config.js
+       if the business details change. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Bakery",
+    "name": "Better Binge by Kay",
+    "url": "https://betterbingebykay.com/",
+    "image": "https://lh3.googleusercontent.com/d/1Y21SFbOI-dYDAWjpSCwG2dLkExf7SiuU=w1200-h630",
+    "description": "Handcrafted eggless brownie boxes & custom hampers, made fresh to order — no maida.",
+    "priceRange": "₹₹",
+    "areaServed": ["Chandigarh", "Mohali", "Panchkula", "Derabassi", "Zirakpur"],
+    "sameAs": ["https://instagram.com/betterbingebykay"]
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,7 +80,7 @@
       <h1 id="heroTitle"></h1>
       <div class="hero-divider"><span>✦</span></div>
       <p class="tagline" id="tagline"></p>
-      <div class="handle-badge" id="handleBadge"></div>
+      <a class="handle-badge" id="handleBadge" target="_blank" rel="noopener"></a>
       <p class="kay-note" id="kayNote"></p>
     </div>
 
